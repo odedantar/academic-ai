@@ -3,7 +3,7 @@ from langchain.chains import LLMChain
 from langchain.tools import Tool
 from langchain.schema.language_model import BaseLanguageModel
 
-from ai.src.math.tool_wrapper import get_multivariable_chain_tool
+from ai.src.utilities.tool_wrapper import get_multivariable_chain_tool
 
 
 writer_template = """As part of your training you've read vast amounts of advanced math material, and seen 

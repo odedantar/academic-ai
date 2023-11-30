@@ -3,10 +3,12 @@ from langchain.agents import initialize_agent, AgentType
 from langchain.chains.conversation.memory import ConversationBufferWindowMemory
 
 from ai.src.config import OPENAI_API_KEY
-from ai.src.retrievers.wikipedia import get_wikipedia_sub_agent
-from ai.src.math.wolfram_alpha import get_wolfram_alpha_tool
-from ai.src.math.question_writer import get_question_writer_tool
-from ai.src.math.question_solver import get_question_solver_tool
+from ai.src.search_tools.wikipedia import get_wikipedia_sub_agent
+from ai.src.math_tools.wolfram_alpha import get_wolfram_alpha_tool
+from ai.src.math_tools.question_writer import get_question_writer_tool
+from ai.src.math_tools.question_solver import get_question_solver_tool
+
+AGENT_TIMEOUT = 180  # In seconds
 
 
 def get_openai_llm(openai_key: str, temperature=0.0, model_name='gpt-3.5-turbo') -> ChatOpenAI:
@@ -41,12 +43,12 @@ question_solver = get_question_solver_tool(llm=gpt3)
 tools = [wiki_tool, wolfram_tool, question_writer, question_solver]
 
 agent = initialize_agent(
-    llm=gpt4,
+    llm=gpt3,
     tools=tools,
     agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
     memory=get_conversational_memory(),
     verbose=True,
     max_iterations=10,
     handle_parsing_errors=True,
-    max_execution_time=60
+    max_execution_time=AGENT_TIMEOUT
 )
