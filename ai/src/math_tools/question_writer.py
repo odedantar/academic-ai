@@ -3,7 +3,7 @@ from langchain.chains import LLMChain
 from langchain.tools import Tool
 from langchain.schema.language_model import BaseLanguageModel
 
-from ai.src.utilities.tool_wrapper import get_multivariable_chain_tool
+from utilities.tool_wrapper import get_multivariable_chain_tool
 
 
 writer_template = """As part of your training you've read vast amounts of advanced math material, and seen 
@@ -29,9 +29,9 @@ Here are some examples:
     Given: Let f(x) = 2x^2 - 3x + 1
     Task: Find the critical points and classify them as maxima, minima, or points of inflection.
 
-Remember - Be didactic and rigorous while taking into account the level of the students for whom this exercise is 
+Pay attention - Be didactic and rigorous while taking into account the level of the students for whom this exercise is 
 meant for. If you don't have enough knowledge to provide a relevant exercise answer with "I don't know". Write 
-only the exercise and nothing more. {clarifications}.
+only the exercise and nothing more. {additional_details}.
 
 Begin!
 
@@ -41,7 +41,7 @@ variables = {
     "math_field": "Field of math of the question",
     "field_subjects": "Specific subjects under the given math_field the question should involve",
     "educational_level": "Level of students for whom the question is meant for",
-    "clarifications": "Additional instructions and clarifications for the writing of the question"
+    "additional_details": "Additional details and instructions for the content of the question"
 }
 
 

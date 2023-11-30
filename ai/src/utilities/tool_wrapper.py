@@ -50,8 +50,11 @@ def get_multivariable_chain_tool(
                     'request': request
                 })
             scheme = response['text']
+            scheme = scheme.replace('```json', '')
+            scheme = scheme.replace('```', '')
 
             try:
+                print(scheme)
                 inputs = json.loads(scheme, strict=False)
 
                 response = multivariable_chain(

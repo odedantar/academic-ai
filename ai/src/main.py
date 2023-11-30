@@ -1,8 +1,8 @@
 from flask import Flask, request
 from multiprocessing import Process, Manager
 
-from ai.src.config import SERVER_HOST, SERVER_PORT
-from ai.src.agents import agent
+from config import SERVER_HOST, SERVER_PORT
+from agents import agent
 
 app = Flask(__name__)
 

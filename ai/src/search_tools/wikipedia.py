@@ -1,7 +1,7 @@
 from langchain.docstore.wikipedia import Wikipedia
 from langchain.utilities import WikipediaAPIWrapper
-from langchain.agents import Tool, AgentType, AgentExecutor, initialize_agent
 from langchain.tools import WikipediaQueryRun
+from langchain.agents import Tool, AgentType, AgentExecutor, initialize_agent
 from langchain.agents.react.base import DocstoreExplorer
 
 
