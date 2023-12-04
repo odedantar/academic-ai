@@ -54,14 +54,9 @@ def get_multivariable_chain_tool(
             scheme = scheme.replace('```', '')
 
             try:
-                print(scheme)
                 inputs = json.loads(scheme, strict=False)
 
-                response = multivariable_chain(
-                    inputs=inputs
-                )
-
-                return response['text']
+                return multivariable_chain.invoke(inputs)['output']['text']
 
             except ValueError as e:
                 return """Failed to parse tool request to tool variables"""

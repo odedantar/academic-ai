@@ -1,11 +1,10 @@
-import copy
+import asyncio
 import discord
 from discord import app_commands
 from discord.ext import commands
-from openai import AsyncOpenAI
 
-from role import Role
-from config import OPENAI_API_KEY, DISCORD_TOKEN, GUILD_ID
+import agents_api as api
+from config import DISCORD_TOKEN, GUILD_ID
 
 
 # Discord API data
@@ -23,67 +22,68 @@ async def on_ready():
 
 class Chatbot:
     def __init__(self, client):
-        # Chat
-        self.purpose = ''
-        self.conversation = []
-
         # Discord
         self.client = client
-
-    @staticmethod
-    async def chat_completion(messages: list, model: str = "gpt-3.5-turbo") -> str:
-        ai = AsyncOpenAI(api_key=OPENAI_API_KEY)
-
-        completion = await ai.chat.completions.create(
-            model=model,
-            messages=messages
-        )
-
-        return completion.choices[0].message.content
-
-    def add_message(self, role: Role, message: str) -> None:
-        self.conversation.append({
-            "role": role,
-            "content": message
-        })
-
-    def clear_messages(self):
-        self.conversation = []
-
-    def add_purpose(self, messages: list) -> list:
-        purposed = copy.deepcopy(messages)
-        purposed.append({
-            "role": Role.SYSTEM,
-            "content": f'Your purpose: \n {self.purpose}'
-        })
-
-        return purposed
-
-    async def get_response(self, message: str) -> str:
-        self.add_message(Role.USER, message)
-
-        response = await self.chat_completion(self.conversation)
-        self.add_message(Role.ASSISTANT, response)
-
-        return response
 
     def run(self) -> None:
         @client.tree.command(name='echo', guild=guild)
         @app_commands.describe(message='Echo back this message')
         async def echo(interaction: discord.Interaction, message: str):
-            await interaction.response.send_message(message)
+            await interaction.response.defer()
+            await asyncio.sleep(3)
 
-        @client.tree.command(name='chat', guild=guild)
-        @app_commands.describe(message='Write your message here')
+            response = await interaction.channel.send(message)
+            await asyncio.sleep(1)
+
+            for i in range(10):
+                response = await response.edit(content=(response.content + ' ' + message))
+                await asyncio.sleep(1)
+                
+            await interaction.followup.send("**Command:** */echo*")
+
+            # await interaction.response.send_message(message)
+
+        @client.tree.command(name='task', guild=guild)
+        @app_commands.describe(message='Write your task here')
         async def chat(interaction: discord.Interaction, message: str):
             await interaction.response.defer()
-            response = await self.get_response(message)
-            await interaction.followup.send(response)
+            response = await api.math_bot_stream(message)
 
-        @client.tree.command(name='clear', description='Clears bot\'s conversational history', guild=guild)
-        @app_commands.describe()
-        async def clear(interaction: discord.Interaction):
-            self.clear_messages()
-            await interaction.response.send_message('My chat history is cleared.')
+            stream = await interaction.channel.send(content="**Response:**")
+
+            text = ""
+            is_new = True
+            is_block = False
+            for token in response:
+                tokens = token.split('\n')
+
+                for t in tokens:
+                    if t == '':
+                        text = '' if not is_block else text
+                        is_new = True
+
+                    elif is_block:
+                        is_block = '```' not in t
+                        text += ('\n' + t) if is_new else t
+                        stream = await stream.edit(content=text)
+
+                    else:
+                        is_block = '```' in t
+
+                        if is_new:
+                            text = t
+                            stream = await interaction.channel.send(content=text)
+                        else:
+                            text += t
+                            is_new = True
+                            stream = await stream.edit(content=text)
+
+                if tokens:
+                    is_new = not tokens[-1]
+
+            await interaction.followup.send('{user}: "{message}"'.format(
+                user=interaction.user.mention,
+                message=message
+            ))
 
         self.client.run(DISCORD_TOKEN)
