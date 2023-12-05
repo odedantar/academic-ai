@@ -15,13 +15,14 @@ REQUEST:
 {request}
 
 Pay attention - Write only the JSON scheme as you were asked and nothing more.
-If a field is optional and you don't have enough information to fill it, you may leave the field empty. 
+If a field is optional and you don't have enough information to fill it, you may leave it empty. 
 If a field is non optional and you don't have enough information to fill it, than instead of writing 
-the JSON scheme describe what additional information do you need to be able to fill it.
+the JSON scheme describe what additional information you need to be able to fill it.
 
 Begin!
 
-JSON:"""
+JSON:
+"""
 
 
 def get_multivariable_chain_tool(
@@ -59,7 +60,8 @@ def get_multivariable_chain_tool(
                 return multivariable_chain.invoke(inputs)['output']['text']
 
             except ValueError as e:
-                return """Failed to parse tool request to tool variables"""
+                return """Failed to parse tool request to tool variables. 
+                Try editing the input to not include JSON problematic characters like '{' and '}'."""
 
     return Tool(
         name=tool_name,

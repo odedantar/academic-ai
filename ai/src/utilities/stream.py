@@ -1,3 +1,9 @@
+"""
+Reference to the original idea for the streaming queue:
+https://stackoverflow.com/questions/76284412/stream-a-response-from-langchains-openai-with-pyton-flask-api
+"""
+
+
 from queue import Queue
 from typing import Any, Dict, List
 from langchain.schema import LLMResult

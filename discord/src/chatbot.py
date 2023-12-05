@@ -59,7 +59,11 @@ class Chatbot:
 
                 for t in tokens:
                     if t == '':
-                        text = '' if not is_block else text
+                        if is_block:
+                            text += '\n'
+                        else:
+                            text = ''
+
                         is_new = True
 
                     elif is_block:

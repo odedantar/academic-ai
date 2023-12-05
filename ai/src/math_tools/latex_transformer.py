@@ -21,6 +21,4 @@ def get_latex_chain(llm: BaseLanguageModel, input_chain: LLMChain):
     latex_prompt = PromptTemplate.from_template(template=latex_template)
     latex_chain = LLMChain(llm=llm, prompt=latex_prompt)
 
-    seq_chain = {'math_text': input_chain} | RunnablePassthrough.assign(output=latex_chain)
-
-    return seq_chain
+    return {'math_text': input_chain} | RunnablePassthrough.assign(output=latex_chain)

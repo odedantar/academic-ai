@@ -20,8 +20,8 @@ Question:
 Given: Let A, B, and C be real numbers.
 Task: Prove that If A = B and B = C, then A = C.
 
-Pay attention - Be didactic and rigorous while taking into account the level of the students for whom this exercise is 
-meant for. If you don't have enough knowledge to provide a relevant exercise answer with "I don't know". Write only 
+Remember - Be didactic and rigorous while considering the level of the students for whom this question is 
+intended. If you don't have enough knowledge to provide a question, answer "I don't know". Write only 
 the exercise and nothing more. {additional_details}.
 ALWAYS write in LaTeX code.
 
@@ -54,6 +54,6 @@ def get_question_writer_tool(
         multivariable_chain=writer_chain,
         variables=variables,
         tool_name="Math question writer",
-        tool_description=("Useful for writing one math questions at a time. "
+        tool_description=("Useful for WRITING math questions, one at a time. "
                           "PAY ATTENTION - Describe what question to write with as much details as possible")
     )
