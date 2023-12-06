@@ -3,7 +3,6 @@ from langchain.chains import LLMChain
 from langchain.tools import Tool
 from langchain.schema.language_model import BaseLanguageModel
 
-from math_tools.proofreader import get_proofread_chain
 from math_tools.latex_transformer import get_latex_chain
 from utilities.tool_wrapper import get_multivariable_chain_tool
 
@@ -19,7 +18,7 @@ Task: {math_question}
 Remember - Be didactic and rigorous. If you don't have enough info to solve the question, write "I don't know". 
 If you come across a numerical calculation, stop and write: "Calculate: ${{numerical-calculation}}" and give 
 instructions on how to continue the solution. Write only the solution and nothing more. If you've solved the 
-question, write at the end of the solution: "Question is solved". ALWAYS write in LaTeX code.
+question, write at the end of the solution: "Question is solved". Write in LaTeX code.
 
 Begin!
 
@@ -34,18 +33,13 @@ variables = {
 
 def get_question_solver_tool(
         llm: BaseLanguageModel,
-        proofread_llm: BaseLanguageModel = None,
         latex_llm: BaseLanguageModel = None,
         wrapper_llm: BaseLanguageModel = None) -> Tool:
 
     solver_prompt = PromptTemplate.from_template(solver_template)
-    proofread_chain = get_proofread_chain(
-        llm=llm if not proofread_llm else proofread_llm,
-        input_chain=LLMChain(llm=llm, prompt=solver_prompt)
-    )
     solver_chain = get_latex_chain(
         llm=llm if not latex_llm else latex_llm,
-        input_chain=proofread_chain
+        input_chain=LLMChain(llm=llm, prompt=solver_prompt)
     )
 
     return get_multivariable_chain_tool(

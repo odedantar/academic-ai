@@ -4,7 +4,6 @@ from flask import Flask, Response, request, stream_with_context
 from multiprocessing import Process, Manager
 
 from agents import get_math_agent
-from utilities.stream import StreamHandler
 from utilities.config import SERVER_HOST, SERVER_PORT
 
 STREAM_CHUNK_SIZE = 50
@@ -54,9 +53,9 @@ def math_stream():
 
 def local_run():
     manager = Manager()
-    timeout = 180  # Seconds
+    timeout = 240  # Seconds
 
-    text = """Write a linear algebra question and solve it."""
+    text = """Write a question for a senior math undergrad in set theory, and solve it."""
 
     in_args = {'text': text}
     out_args = manager.dict()  # This is the dict we can access both in and out of the processes.

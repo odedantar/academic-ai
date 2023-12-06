@@ -22,8 +22,7 @@ Task: Prove that If A = B and B = C, then A = C.
 
 Remember - Be didactic and rigorous while considering the level of the students for whom this question is 
 intended. If you don't have enough knowledge to provide a question, answer "I don't know". Write only 
-the exercise and nothing more. {additional_details}.
-ALWAYS write in LaTeX code.
+the exercise and nothing more. Write in LaTeX code. {additional_details}.
 
 Begin!
 

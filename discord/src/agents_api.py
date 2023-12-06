@@ -1,41 +1,43 @@
 import asyncio
-from requests import post
+import requests
+import threading
+from queue import Queue
+from typing import Dict, Awaitable
+from requests import Response
+
 from config import API_BASE_URL
 
 REQUEST_TIMEOUT = 180  # In seconds
 
 
-async def math_bot(text: str) -> str:
-    loop = asyncio.get_event_loop()
+def math_bot(text: str) -> Awaitable[Response]:
+    event_loop = asyncio.get_event_loop()
 
     url = API_BASE_URL + '/math'
     data = {'text': text}
 
     print("Sending API request to: " + url + "...")
-    request = loop.run_in_executor(None, lambda: post(url=url, data=data, timeout=REQUEST_TIMEOUT))
-    response = await request
-
-    answer = response.content.decode('latin-1')
-    print("Answer: '" + answer + "'")
-    return answer
+    request = event_loop.run_in_executor(None, lambda: requests.post(url=url, data=data, timeout=REQUEST_TIMEOUT))
+    return request
 
 
-async def math_bot_stream(text: str):
-    loop = asyncio.get_event_loop()
-
+def math_bot_stream(text: str, stream_queue: Queue):
     url = API_BASE_URL + '/math/stream'
     data = {'text': text}
 
-    print("Sending API request to: " + url + "...")
-    request = loop.run_in_executor(None, lambda: post(url=url, data=data, stream=True))
-    response = await request
-
-    def stream():
-        for chunk in response.iter_content(chunk_size=1024):
+    def streamer(url: str, data: Dict, queue: Queue):
+        print("Stream thread: Sending API request to: " + url + "...")
+        stream = requests.post(url=url, data=data, stream=True)
+        print("Stream thread: Stream has began")
+        for chunk in stream.iter_content(chunk_size=1024):
             if chunk:
-                yield chunk.decode('utf-8')
+                print("Stream thread: Putting chunk in queue...")
+                queue.put(chunk.decode('utf-8'))
 
-    return stream()
+        queue.put(None)
+
+    stream_thread = threading.Thread(target=streamer, args=[url, data, stream_queue])
+    stream_thread.start()
 
 
 if __name__ == "__main__":
