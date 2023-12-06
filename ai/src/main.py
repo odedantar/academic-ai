@@ -3,7 +3,7 @@ from queue import Queue
 from flask import Flask, Response, request, stream_with_context
 from multiprocessing import Process, Manager
 
-from agents import get_math_agent
+from agents import get_agent
 from utilities.config import SERVER_HOST, SERVER_PORT
 
 STREAM_CHUNK_SIZE = 50
@@ -14,7 +14,7 @@ app = Flask(__name__)
 @app.route("/math", methods=['GET', 'POST'])
 def math():
     try:
-        agent = get_math_agent()
+        agent = get_agent()
         return agent.invoke(request.values['text'])['output']
 
     except Exception as e:
@@ -40,7 +40,7 @@ def math_stream():
         queue = Queue()
         stream = streamer(queue)
 
-        agent = get_math_agent(queue=queue)
+        agent = get_agent(stream_queue=queue)
         invoke = threading.Thread(target=agent.invoke, args=[request.values['text']])
         invoke.start()
 
@@ -55,7 +55,7 @@ def local_run():
     manager = Manager()
     timeout = 240  # Seconds
 
-    text = """Write a question for a senior math undergrad in set theory, and solve it."""
+    text = """What is the hottest topic in math right now? Write a math exercise in that topic."""
 
     in_args = {'text': text}
     out_args = manager.dict()  # This is the dict we can access both in and out of the processes.
@@ -73,9 +73,7 @@ def local_run():
 
 
 def worker(in_args: dict, out_args: dict):
-    q = Queue()
-    agent = get_math_agent(queue=q)
-
+    agent = get_agent()
     text = in_args['text']
     out_args['answer'] = agent.invoke(text)['output']
 
