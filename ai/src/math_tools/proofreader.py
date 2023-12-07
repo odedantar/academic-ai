@@ -2,7 +2,6 @@ from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 from langchain.tools import Tool
 from langchain.schema.language_model import BaseLanguageModel
-from langchain.schema.runnable import RunnablePassthrough
 
 from math_tools.latex_transformer import get_latex_chain
 from utilities.tool_wrapper import get_multivariable_chain_tool

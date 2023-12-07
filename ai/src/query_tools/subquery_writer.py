@@ -1,11 +1,8 @@
 import json
-from typing import Optional, List
+from typing import List
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
-from langchain.tools import BaseTool, Tool
 from langchain.schema.language_model import BaseLanguageModel
-
-from query_tools.engine_chooser import choose_query_engine
 
 
 subquery_template = """You are given a query:
@@ -59,27 +56,3 @@ def get_subqueries(llm: BaseLanguageModel, query: str) -> List[str]:
         raise e
 
     return scheme['queries']
-
-
-# def get_subquery_tool(
-#         llm: BaseLanguageModel,
-#         tool_name: str,
-#         tool_description: str) -> Tool:
-#
-#     def tool_wrapper(query: Optional[str] = None) -> str:
-#         if not query:
-#             return """Could not continue with an empty query"""
-#
-#         try:
-#             sub_queries = get_subqueries(llm=llm, query=query)
-#
-#         except ValueError as e:
-#             return """Failed at generating sub queries."""
-#
-#     return Tool(
-#         name=tool_name,
-#         func=tool_wrapper,
-#         description=tool_description
-#     )
-
-

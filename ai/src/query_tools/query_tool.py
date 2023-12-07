@@ -1,6 +1,5 @@
 from typing import Optional
 from langchain.tools import BaseTool, Tool
-from langchain.schema.language_model import BaseLanguageModel
 
 from utilities.models import get_openai_llm
 from query_tools.subquery_writer import get_subqueries

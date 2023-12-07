@@ -1,8 +1,7 @@
 import json
-from typing import Optional, Dict
+from typing import Dict
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
-from langchain.tools import BaseTool, Tool
 from langchain.schema.language_model import BaseLanguageModel
 
 
