@@ -2,7 +2,7 @@ import json
 from typing import Optional
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
-from langchain.tools import Tool
+from langchain.tools import BaseTool, Tool
 from langchain.schema.language_model import BaseLanguageModel
 
 
@@ -15,13 +15,14 @@ REQUEST:
 {request}
 
 Pay attention - Write only the JSON scheme as you were asked and nothing more.
-If a field is optional and you don't have enough information to fill it, you may leave the field empty. 
+If a field is optional and you don't have enough information to fill it, you may leave it empty. 
 If a field is non optional and you don't have enough information to fill it, than instead of writing 
-the JSON scheme describe what additional information do you need to be able to fill it.
+the JSON scheme describe what additional information you need to be able to fill it.
 
 Begin!
 
-JSON:"""
+JSON:
+"""
 
 
 def get_multivariable_chain_tool(
@@ -30,7 +31,7 @@ def get_multivariable_chain_tool(
         variables: dict,
         tool_name: str,
         tool_description: str
-) -> Tool:
+) -> BaseTool:
 
     def tool_wrapper(request: Optional[str] = None) -> str:
         json_scheme = ',\n\t'.join(['"' + name + '": "' + desc + '"' for name, desc in variables.items()])
@@ -43,28 +44,23 @@ def get_multivariable_chain_tool(
         if not request:
             return """Could not continue with an empty request from the tool"""
 
-        else:
-            response = chain(
-                inputs={
-                    'json_scheme': json_scheme,
-                    'request': request
-                })
-            scheme = response['text']
-            scheme = scheme.replace('```json', '')
-            scheme = scheme.replace('```', '')
+        response = chain(
+            inputs={
+                'json_scheme': json_scheme,
+                'request': request
+            })
+        scheme = response['text']
+        scheme = scheme.replace('```json', '')
+        scheme = scheme.replace('```', '')
 
-            try:
-                print(scheme)
-                inputs = json.loads(scheme, strict=False)
+        try:
+            inputs = json.loads(scheme, strict=False)
 
-                response = multivariable_chain(
-                    inputs=inputs
-                )
+            return multivariable_chain.invoke(inputs)['output']['text']
 
-                return response['text']
-
-            except ValueError as e:
-                return """Failed to parse tool request to tool variables"""
+        except ValueError as e:
+            return """Failed to parse tool request to tool variables. 
+            Try editing the input to not include JSON problematic characters like '{' and '}'."""
 
     return Tool(
         name=tool_name,

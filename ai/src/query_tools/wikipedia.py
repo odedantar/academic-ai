@@ -1,11 +1,11 @@
 from langchain.docstore.wikipedia import Wikipedia
 from langchain.utilities import WikipediaAPIWrapper
-from langchain.tools import WikipediaQueryRun
-from langchain.agents import Tool, AgentType, AgentExecutor, initialize_agent
+from langchain.tools import BaseTool, Tool, WikipediaQueryRun
+from langchain.agents import AgentType, AgentExecutor, initialize_agent
 from langchain.agents.react.base import DocstoreExplorer
 
 
-def get_wikipedia_query_tool() -> Tool:
+def get_wikipedia_query_tool() -> BaseTool:
     wikipedia = WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper())
 
     wikipedia_tool = Tool(

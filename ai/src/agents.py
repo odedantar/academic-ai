@@ -1,55 +1,41 @@
-from langchain.chat_models import ChatOpenAI
+from queue import Queue
 from langchain.agents import initialize_agent, AgentType
-from langchain.chains.conversation.memory import ConversationBufferWindowMemory
 
-from config import OPENAI_API_KEY
-from search_tools.wikipedia import get_wikipedia_sub_agent
-from math_tools.wolfram_alpha import get_wolfram_alpha_tool
-from math_tools.question_writer import get_question_writer_tool
-from math_tools.question_solver import get_question_solver_tool
+from utilities.models import get_openai_llm, get_conversational_memory
+from utilities.streamers import StreamHandler
+from query_tools.query_tool import get_query_tool
+from math_tools.math_tool import get_math_tool
 
 MAX_ITERATIONS = 6  # Num. of iterations
-AGENT_TIMEOUT = 180  # In seconds
+AGENT_TIMEOUT = 240  # In seconds
 
 
-def get_openai_llm(openai_key: str, temperature=0.0, model_name='gpt-3.5-turbo') -> ChatOpenAI:
-    model = ChatOpenAI(
-        openai_api_key=openai_key,
-        temperature=temperature,
-        model_name=model_name
+def get_agent(stream_queue: Queue = None):
+    agent_streamer = None if not stream_queue else [StreamHandler(queue=stream_queue)]
+
+    agent_llm = get_openai_llm(
+        temperature=0.05,
+        model_name='gpt-4-1106-preview',
+        streamers=agent_streamer
     )
 
-    return model
-
-
-def get_conversational_memory() -> ConversationBufferWindowMemory:
-    memory = ConversationBufferWindowMemory(
-        memory_key='chat_history',
-        k=5,
-        return_messages=True
+    query_tool = get_query_tool()
+    math_tool = get_math_tool(
+        max_iter=MAX_ITERATIONS,
+        stream_queue=stream_queue,
+        timeout=120
     )
 
-    return memory
+    # when giving tools to LLM, we must pass as list of tools
+    tools = [query_tool, math_tool]
 
-
-gpt3 = get_openai_llm(openai_key=OPENAI_API_KEY, temperature=0.05, model_name='gpt-3.5-turbo')
-gpt4 = get_openai_llm(openai_key=OPENAI_API_KEY, temperature=0.05, model_name='gpt-4-1106-preview')
-
-wiki_tool = get_wikipedia_sub_agent(llm=gpt3, is_verbose=True)
-wolfram_tool = get_wolfram_alpha_tool()
-question_writer = get_question_writer_tool(llm=gpt3)
-question_solver = get_question_solver_tool(llm=gpt3)
-
-# when giving tools to LLM, we must pass as list of tools
-tools = [wiki_tool, wolfram_tool, question_writer, question_solver]
-
-agent = initialize_agent(
-    llm=gpt4,
-    tools=tools,
-    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-    memory=get_conversational_memory(),
-    verbose=True,
-    max_iterations=MAX_ITERATIONS,
-    handle_parsing_errors=True,
-    max_execution_time=AGENT_TIMEOUT
-)
+    return initialize_agent(
+        llm=agent_llm,
+        tools=tools,
+        agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+        memory=get_conversational_memory(),
+        verbose=True,
+        max_iterations=MAX_ITERATIONS,
+        handle_parsing_errors=True,
+        max_execution_time=AGENT_TIMEOUT
+    )

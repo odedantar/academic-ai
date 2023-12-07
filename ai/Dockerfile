@@ -1,3 +1,6 @@
+# docker build -t math-agent .
+# docker run --name math-agent -p 5000:5000 math-agent
+
 #FROM continuumio/anaconda3:latest
 FROM python:3.9-alpine
 

@@ -1,5 +1,4 @@
-from chatbot import Chatbot, client
+from chatbot import run
 
 if __name__ == '__main__':
-    bot = Chatbot(client)
-    bot.run()
+    run()
