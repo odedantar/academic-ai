@@ -4,7 +4,7 @@ from langchain.tools import Tool
 from langchain.schema.language_model import BaseLanguageModel
 
 from math_tools.latex_transformer import get_latex_chain
-from utilities.tool_wrapper import get_multivariable_chain_tool
+from utilities.multivariable_wrapper import get_multivariable_chain_tool
 
 
 writer_template = """Write a new math question relevant to the field of {math_field}, involving {field_subjects}, 

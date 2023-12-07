@@ -9,6 +9,7 @@ from math_tools.wolfram_alpha import get_wolfram_alpha_tool
 from math_tools.question_writer import get_question_writer_tool
 from math_tools.question_solver import get_question_solver_tool
 from math_tools.proofreader import get_proofreader_tool
+from agents.custom_agent import CustomAgent
 
 
 def get_math_tool(
@@ -69,31 +70,33 @@ def get_math_tool(
     tools = [wolfram_tool, question_writer, question_solver, proofreader]
 
     # Agent
-    math_agent = initialize_agent(
-        llm=agent_llm,
-        tools=tools,
-        agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-        # memory=get_conversational_memory(),
-        verbose=True,
-        max_iterations=max_iter,
-        handle_parsing_errors=True,
-        max_execution_time=timeout
-    )
+    math_agent = CustomAgent(llm=agent_llm, tools=tools, max_iterations=max_iter)
+    # math_agent = initialize_agent(
+    #     llm=agent_llm,
+    #     tools=tools,
+    #     agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+    #     # memory=get_conversational_memory(),
+    #     verbose=True,
+    #     max_iterations=max_iter,
+    #     handle_parsing_errors=True,
+    #     max_execution_time=timeout
+    # )
 
     def tool_wrapper(input: Optional[str] = None) -> str:
         if not input:
             return """Could not continue with an empty input"""
 
         try:
-            return math_agent.invoke({'input': input})['output']
+            return math_agent.run(input)
+            # return math_agent.invoke({'input': input})['output']
 
         except Exception as e:
             return """Failed to invoke math agent"""
 
     # Math tool
     return Tool(
-        name="Math tool",
+        name="Mathematical toolkit",
         func=tool_wrapper,
-        description="Useful for doing anything from simple calculations to advanced math."
-                    "Can write, solve, or proofread mathematical texts."
+        description="Useful for anything from simple calculations to advanced math, writing, solving, "
+                    "or proofreading mathematical texts using LaTeX syntax."
     )

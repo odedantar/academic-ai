@@ -37,6 +37,7 @@ async def chat(interaction: discord.Interaction, message: str):
     async def chat_handler(chat_queue: Queue, interaction: discord.Interaction):
         while True:
             if chat_queue.empty():
+                await asyncio.sleep(1)
                 continue
 
             print("Chat async: Sending message")
@@ -111,12 +112,21 @@ def queue_handler(stream_queue: Queue, chat_queue: Queue):
                     print("Discord thread: Starting code block")
                     is_block = True
                 elif text != '':
-                    chat_queue.put(text)
+                    chat_queue.put(highlight(text))
 
     if leftover != '':
         print("Discord thread: Putting leftover")
-        chat_queue.put(leftover)
+        chat_queue.put(highlight(leftover))
     chat_queue.put(None)
+
+
+def highlight(text: str) -> str:
+    highlights = ['Thought:', 'Action:', 'Action Input:', 'Tool:', 'Final Answer:']
+
+    for h in highlights:
+        text = text.replace(h, f'**{h}**')
+
+    return text
 
 
 def run() -> None:

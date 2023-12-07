@@ -3,14 +3,15 @@ from langchain.agents import initialize_agent, AgentType
 
 from utilities.models import get_openai_llm, get_conversational_memory
 from utilities.streamers import StreamHandler
-from query_tools.query_tool import get_query_tool
+from query_tools.retrieval_tool import get_retrieval_tool
 from math_tools.math_tool import get_math_tool
+from agents.custom_agent import CustomAgent
 
 MAX_ITERATIONS = 6  # Num. of iterations
 AGENT_TIMEOUT = 240  # In seconds
 
 
-def get_agent(stream_queue: Queue = None):
+def build_agent(stream_queue: Queue = None):
     agent_streamer = None if not stream_queue else [StreamHandler(queue=stream_queue)]
 
     agent_llm = get_openai_llm(
@@ -19,7 +20,7 @@ def get_agent(stream_queue: Queue = None):
         streamers=agent_streamer
     )
 
-    query_tool = get_query_tool()
+    retrieval_tool = get_retrieval_tool()
     math_tool = get_math_tool(
         max_iter=MAX_ITERATIONS,
         stream_queue=stream_queue,
@@ -27,15 +28,18 @@ def get_agent(stream_queue: Queue = None):
     )
 
     # when giving tools to LLM, we must pass as list of tools
-    tools = [query_tool, math_tool]
+    tools = [retrieval_tool, math_tool]
 
-    return initialize_agent(
-        llm=agent_llm,
-        tools=tools,
-        agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-        memory=get_conversational_memory(),
-        verbose=True,
-        max_iterations=MAX_ITERATIONS,
-        handle_parsing_errors=True,
-        max_execution_time=AGENT_TIMEOUT
-    )
+    agent = CustomAgent(llm=agent_llm, tools=tools, max_iterations=MAX_ITERATIONS)
+    return agent
+
+    # return initialize_agent(
+    #     llm=agent_llm,
+    #     tools=tools,
+    #     agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+    #     memory=get_conversational_memory(),
+    #     verbose=True,
+    #     max_iterations=MAX_ITERATIONS,
+    #     handle_parsing_errors=True,
+    #     max_execution_time=AGENT_TIMEOUT
+    # )

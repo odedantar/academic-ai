@@ -41,7 +41,7 @@ class CodeBlockStreamHandler(BaseCallbackHandler):
             self, serialized: Dict[str, Any], prompts: List[str], **kwargs: Any
     ) -> Any:
         """Run when LLM starts running."""
-        self.queue.put('\n**Tool:**\n')
+        self.queue.put('\nTool:\n')
         self.queue.put('\n```' + self.type + '\n')
 
     def on_llm_new_token(self, token: str, **kwargs: Any) -> Any:
