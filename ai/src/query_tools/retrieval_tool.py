@@ -92,5 +92,5 @@ def get_retrieval_tool() -> BaseTool:
     return Tool(
         name="Retrieval tool",
         func=tool_wrapper,
-        description="Useful for fact retrieval using natural language querying."
+        description="Useful for information retrieval from the web using natural language querying."
     )

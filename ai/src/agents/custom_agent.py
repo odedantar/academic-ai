@@ -5,7 +5,7 @@ from langchain.tools import BaseTool, Tool
 from langchain.schema.language_model import BaseLanguageModel
 
 
-step_template = """You are a great planner and decision maker but terrible at anything else.
+step_template = """You are a great decision maker but terrible at anything else.
 Answer the following questions as best you can using the following tools:
 
 {tool_list}

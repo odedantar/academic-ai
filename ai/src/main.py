@@ -55,7 +55,7 @@ def local_run():
     manager = Manager()
     timeout = 240  # Seconds
 
-    text = """Who lives longer, dogs, cats or wolves?"""
+    text = """Write a question in linear algebra suited for undergrads. Write it in LaTeX."""
 
     in_args = {'text': text}
     out_args = manager.dict()  # This is the dict we can access both in and out of the processes.
