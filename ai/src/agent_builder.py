@@ -33,13 +33,17 @@ def build_agent(stream_queue: Queue = None):
     agent = CustomAgent(llm=agent_llm, tools=tools, max_iterations=MAX_ITERATIONS)
     return agent
 
+    # agent_instructions = "Try 'Knowledge Internal Base' tool first, Use the other tools if these don't work."
+    #
     # return initialize_agent(
     #     llm=agent_llm,
     #     tools=tools,
     #     agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+    #     agent_instructions = agent_instructions,
     #     memory=get_conversational_memory(),
     #     verbose=True,
     #     max_iterations=MAX_ITERATIONS,
+    #     early_stopping_method = 'generate',
     #     handle_parsing_errors=True,
     #     max_execution_time=AGENT_TIMEOUT
     # )
