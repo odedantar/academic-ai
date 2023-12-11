@@ -8,7 +8,7 @@ from langchain.schema.language_model import BaseLanguageModel
 step_template = """You are a great decision maker but terrible at anything else.
 Answer the following questions as best you can using the following tools:
 
-{tool_list}
+{tool_desc}
 
 Use this format:
 
@@ -41,23 +41,27 @@ class CustomAgent:
         self.question = ''
         self.process = ''
         self.answer = ''
+        self.tool_list = [f'{t.name}' for t in self.tools]
         self.tool_names = ','.join([f'{t.name}' for t in self.tools])
-        self.tool_list = '\n'.join([f'{t.name}: {t.description}' for t in self.tools])
+        self.tool_desc = '\n'.join([f'{t.name}: {t.description}' for t in self.tools])
         self.tool_map = {t.name: t for t in self.tools}
 
     def step(self) -> Union[Dict, None]:
         step_prompt = PromptTemplate.from_template(step_template)
         step_chain = LLMChain(llm=self.model, prompt=step_prompt)
+        try:
+            output = step_chain(
+                inputs={
+                    'tool_desc': self.tool_desc,
+                    'tool_names': self.tool_names,
+                    'question': self.question,
+                    'process': self.process
+                }
+            )
+            step = output['text']
+        except Exception as e:
+            raise e
 
-        output = step_chain(
-            inputs={
-                'tool_list': self.tool_list,
-                'tool_names': self.tool_names,
-                'question': self.question,
-                'process': self.process
-            }
-        )
-        step = output['text']
         result = {}
 
         try:
@@ -71,12 +75,15 @@ class CustomAgent:
                 result['tool'] = step[action_index + len('Action:'):action_input_index].strip()
                 result['input'] = step[action_input_index + len('Action Input:'):observation_index].strip()
 
+                if result['tool'] not in self.tool_list:
+                    return None
+
             elif '\nFinal Answer:' in step:
                 answer_index = step.find('Final Answer:')
                 result['answer'] = step[answer_index + len('Final Answer:'):].strip()
 
             else:
-                result = None
+                return None
 
             return result
 
