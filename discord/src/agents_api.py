@@ -5,7 +5,7 @@ from queue import Queue
 from typing import Dict, Awaitable
 from requests import Response
 
-from config import API_BASE_URL
+from config import AI_API_URL
 
 REQUEST_TIMEOUT = 180  # In seconds
 
@@ -13,7 +13,7 @@ REQUEST_TIMEOUT = 180  # In seconds
 def math_bot(text: str) -> Awaitable[Response]:
     event_loop = asyncio.get_event_loop()
 
-    url = API_BASE_URL + '/math'
+    url = AI_API_URL + '/math'
     data = {'text': text}
 
     print("Sending API request to: " + url + "...")
@@ -22,7 +22,7 @@ def math_bot(text: str) -> Awaitable[Response]:
 
 
 def math_bot_stream(text: str, stream_queue: Queue):
-    url = API_BASE_URL + '/math/stream'
+    url = AI_API_URL + '/math/stream'
     data = {'text': text}
 
     def streamer(url: str, data: Dict, queue: Queue):

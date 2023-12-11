@@ -1,3 +1,4 @@
+import asyncio
 import threading
 from queue import Queue
 from flask import Flask, Response, request, stream_with_context
@@ -55,7 +56,7 @@ def local_run():
     manager = Manager()
     timeout = 240  # Seconds
 
-    text = """What is the hottest topic in math right now? Write a math exercise in that topic."""
+    text = """What are the main topics in classical physics academic syllabus?"""
 
     in_args = {'text': text}
     out_args = manager.dict()  # This is the dict we can access both in and out of the processes.
@@ -79,5 +80,5 @@ def worker(in_args: dict, out_args: dict):
 
 
 if __name__ == '__main__':
-    app.run(host=SERVER_HOST, port=SERVER_PORT)
-    # local_run()
+    # app.run(host=SERVER_HOST, port=SERVER_PORT)
+    local_run()

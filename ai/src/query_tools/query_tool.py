@@ -6,6 +6,7 @@ from query_tools.subquery_writer import get_subqueries
 from query_tools.engine_chooser import choose_query_engine
 from query_tools.wikipedia import get_wikipedia_query_tool
 from query_tools.serper_api import get_google_search_tool
+from query_tools.vector_store import get_vector_store_tool
 
 
 def get_query_tool() -> BaseTool:
@@ -14,20 +15,20 @@ def get_query_tool() -> BaseTool:
         model_name='gpt-4-1106-preview'
     )
 
+    query_tools = [
+        get_wikipedia_query_tool(),
+        get_google_search_tool(llm=query_llm),
+        get_vector_store_tool()
+    ]
+
     engines = {
-        "wikipedia": {
-            "description": "Largest online collaborative encyclopedia",
-            "tool": get_wikipedia_query_tool()
-        },
-        "google": {
-            "description": "The leading web search engine these days.",
-            "tool": get_google_search_tool(llm=query_llm)
+        qt.name: {
+            'description': qt.description,
+            'tool': qt
         }
-        # "arxiv": {
-        #     "description": "Largest academic papers archive in the fields of exact sciences",
-        #     "tool": lambda: None
-        # }
+        for qt in query_tools
     }
+
     engine_descriptions = {name: engine['description'] for name, engine in engines.items()}
 
     def tool_wrapper(query: Optional[str] = None) -> str:

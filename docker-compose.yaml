@@ -11,3 +11,11 @@ services:
     container_name: math_agent
     ports:
       - '5000:5000'
+    links:
+      - vector_store
+
+  vector_store:
+    build: ./db
+    container_name: vector_store
+    ports:
+      - '5001:5001'
