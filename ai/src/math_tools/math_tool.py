@@ -9,6 +9,7 @@ from math_tools.wolfram_alpha import get_wolfram_alpha_tool
 from math_tools.question_writer import get_question_writer_tool
 from math_tools.question_solver import get_question_solver_tool
 from math_tools.proofreader import get_proofreader_tool
+from math_tools.latex_writer import get_latex_tool
 from agents.custom_agent import CustomAgent
 
 
@@ -39,6 +40,10 @@ def get_math_tool(
         temperature=0.05,
         model_name='gpt-4-1106-preview'
     )
+    latex_typer_llm = get_openai_llm(
+        temperature=0.05,
+        model_name='gpt-4-1106-preview'
+    )
     wrapper_llm = get_openai_llm(
         temperature=0.1,
         model_name='gpt-4-1106-preview'
@@ -66,8 +71,12 @@ def get_math_tool(
         latex_llm=latex_llm,
         wrapper_llm=wrapper_llm
     )
+    latex_typer = get_latex_tool(
+        llm=latex_typer_llm,
+        wrapper_llm=wrapper_llm
+    )
 
-    tools = [wolfram_tool, question_writer, question_solver, proofreader]
+    tools = [wolfram_tool, question_writer, question_solver, proofreader, latex_typer]
 
     # Agent
     math_agent = CustomAgent(llm=agent_llm, tools=tools, max_iterations=max_iter)
@@ -87,10 +96,11 @@ def get_math_tool(
             return """Could not continue with an empty input"""
 
         try:
-            return math_agent.run(input)
+            return math_agent.invoke(input)
             # return math_agent.invoke({'input': input})['output']
 
         except Exception as e:
+            print(e)
             return """Failed to invoke math agent"""
 
     # Math tool
@@ -98,5 +108,5 @@ def get_math_tool(
         name="Mathematical toolkit",
         func=tool_wrapper,
         description="Useful for anything from simple calculations to advanced math, writing, solving, "
-                    "or proofreading mathematical texts using LaTeX syntax."
+                    "or proofreading mathematical texts and questions using LaTeX syntax."
     )

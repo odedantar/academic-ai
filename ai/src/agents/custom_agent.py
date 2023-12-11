@@ -83,7 +83,7 @@ class CustomAgent:
         except Exception as e:
             raise e
 
-    def run(self, question: str) -> str:
+    def invoke(self, question: str) -> str:
         self.question = question
         self.process = ''
         self.answer = ''

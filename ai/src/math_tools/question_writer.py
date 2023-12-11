@@ -1,10 +1,10 @@
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
-from langchain.tools import Tool
+from langchain.tools import BaseTool
 from langchain.schema.language_model import BaseLanguageModel
 
-from math_tools.latex_transformer import get_latex_chain
-from utilities.multivariable_wrapper import get_multivariable_chain_tool
+from math_tools.latex_writer import get_latex_sequence
+from utilities.tool_wrapper import sequential_chain_as_tool
 
 
 writer_template = """Write a new math question relevant to the field of {math_field}, involving {field_subjects}, 
@@ -41,16 +41,16 @@ def get_question_writer_tool(
         llm: BaseLanguageModel,
         latex_llm: BaseLanguageModel = None,
         wrapper_llm: BaseLanguageModel = None
-) -> Tool:
+) -> BaseTool:
     writer_prompt = PromptTemplate.from_template(template=writer_template)
-    writer_chain = get_latex_chain(
+    writer_chain = get_latex_sequence(
         llm=llm if not latex_llm else latex_llm,
         input_chain=LLMChain(llm=llm, prompt=writer_prompt)
     )
 
-    return get_multivariable_chain_tool(
+    return sequential_chain_as_tool(
         llm=llm if not wrapper_llm else wrapper_llm,
-        multivariable_chain=writer_chain,
+        sequential_chain=writer_chain,
         variables=variables,
         tool_name="Math question writer",
         tool_description=("Useful for WRITING math questions, one at a time. "

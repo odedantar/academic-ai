@@ -76,7 +76,7 @@ def worker(in_args: dict, out_args: dict):
     agent = build_agent()
     text = in_args['text']
     # out_args['answer'] = agent.invoke(text)['output']
-    out_args['answer'] = agent.run(text)
+    out_args['answer'] = agent.invoke(text)
 
 
 if __name__ == '__main__':
