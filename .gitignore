@@ -161,3 +161,4 @@ cython_debug/
 
 # Local irrelevant files
 db/src/books
+db/resources
