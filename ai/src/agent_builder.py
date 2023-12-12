@@ -7,7 +7,7 @@ from query_tools.retrieval_tool import get_retrieval_tool
 from math_tools.math_tool import get_math_tool
 from agents.custom_agent import CustomAgent
 
-MAX_ITERATIONS = 6  # Num. of iterations
+MAX_ITERATIONS = 10  # Num. of iterations
 AGENT_TIMEOUT = 240  # In seconds
 
 

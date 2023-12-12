@@ -1,42 +1,56 @@
-from typing import List, Dict, Optional, Union
+from queue import Queue
+from typing import List, Dict, Union, Optional
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
-from langchain.tools import BaseTool, Tool
+from langchain.tools import BaseTool
 from langchain.schema.language_model import BaseLanguageModel
 
+from agents import console
+from agents.keywords import Keyword
+from agents.custom_stream import CustomStream
 
-step_template = """You are a great decision maker but terrible at anything else.
+
+step_template = f"""You are a great decision maker but terrible at anything else.
 Answer the following questions as best you can using the following tools:
 
-{tool_desc}
+{{tool_desc}}
 
 Use this format:
 
-Question: the input question you must answer
-Thought: you should always think about what to do
-Action: the action to take, should be one of [{tool_names}]
-Action Input: the input to the action
-Observation: stop and wait for the result of the action
-...(This Thought/Action/Action Input/Observation can repeat N times)
+{Keyword.QUESTION}: the input question you must answer
+{Keyword.THOUGHT}: you should always think about what to do
+{Keyword.ACTION}: the action to take, should be one of [{{tool_names}}]
+{Keyword.INPUT}: the input to the action
+{Keyword.OBSERVATION}: stop and wait for the result of the action
+...(This {Keyword.THOUGHT}/{Keyword.ACTION}/{Keyword.INPUT}/{Keyword.OBSERVATION} can repeat N times)
 
 When you have enough information to answer the question, use the following format:
 
-Thought: I now know the final answer
-Final Answer: the final answer to the original input question
+{Keyword.THOUGHT}: I now know the final answer
+{Keyword.ANSWER}: the final answer to the original input question
 
 Remember, you're only good at decision making and nothing else. 
 Don't attempt to do anything on your own, always use your tools.
+When you write the input for the tools, give as much details as are known to you.
+
 Begin!
 
-Question: {question}
-{process}"""
+{Keyword.QUESTION} {{question}}
+{{process}}
+"""
 
 
 class CustomAgent:
-    def __init__(self, llm: BaseLanguageModel, tools: List[BaseTool], max_iterations: int):
+    def __init__(
+            self, llm: BaseLanguageModel,
+            tools: List[BaseTool],
+            max_iterations: int,
+            stream: Optional[CustomStream] = None):
+
         self.model = llm
         self.tools = tools
         self.max_iter = max_iterations
+        self.stream = CustomStream(queue=Queue(), is_verbose=True) if not stream else stream
 
         self.question = ''
         self.process = ''
@@ -95,7 +109,10 @@ class CustomAgent:
         self.process = ''
         self.answer = ''
 
-        print(f"\nQuestion: {question}")
+        console.bold('\n> CustomAgent is running\n')
+
+        self.process += f"\nQuestion: {question}"
+        self.stream.write(f"\nQuestion: {question}")
 
         for i in range(self.max_iter):
             data = self.step()
@@ -105,22 +122,37 @@ class CustomAgent:
 
             elif 'answer' in data.keys():
                 self.answer = data['answer']
+
                 self.process += f"\nThought: I now know the final answer"
+                self.stream.write(f"\nThought: I now know the final answer")
+
                 self.process += f"\nFinal Answer: {data['answer']}"
-                print(f"\nThought: I now know the final answer\nFinal Answer: {data['answer']}")
+                self.stream.write(f"\nFinal Answer: {data['answer']}")
+
                 break
 
             try:
                 self.process += f"\nThought: {data['thought']}"
+                self.stream.write(f"\nThought: {data['thought']}")
+
                 self.process += f"\nAction: {data['tool']}"
+                self.stream.write(f"\nAction: {data['tool']}")
+
                 self.process += f"\nAction Input: {data['input']}"
-                print(f"\nThought: {data['thought']}\nAction: {data['tool']}\nAction Input: {data['input']}")
+                self.stream.write(f"\nAction Input: {data['input']}")
 
                 observation = self.tool_map[data['tool']].invoke(data['input'])
+
                 self.process += f"\nObservation: {observation}"
-                print(f"\nObservation: {observation}")
+                self.stream.write(f"\nObservation: {observation}")
 
             except Exception as e:
+                self.stream.write(None)
+                console.bold('\n> CustomAgent is exiting due to exception...\n')
+
                 raise e
+
+        self.stream.write(None)
+        console.bold('\n> CustomAgent is finished\n')
 
         return self.answer

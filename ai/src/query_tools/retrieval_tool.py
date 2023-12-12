@@ -11,13 +11,19 @@ from query_tools.wikipedia import get_wikipedia_query_tool
 from query_tools.serper_api import get_google_search_tool
 
 
-MAX_SUMMARY_LENGTH = 250  # Word count
+MAX_SUMMARY_LENGTH = 200  # Word count
 
-summary_template = """Summarize the text below, put emphasis on data and facts. 
-Write only the summary and nothing more. Try to keep the summary under {summary_length} words.
+summary_template = """You are given a main query and the results of several sub queries which were 
+derived from the main one. 
 
-TEXT:
-{text}
+MAIN QUERY: 
+{query}
+
+RESULTS:
+{results}
+
+Summarize the results with the aim of answering the main query. Write only the summary and nothing more. 
+Summarize based only on the results you were given. Keep the summary under {summary_length} words.
 
 Begin!
 
@@ -32,12 +38,13 @@ def get_summary_chain(llm: BaseLanguageModel) -> LLMChain:
     return summary_chain
 
 
-def summarize(llm: BaseLanguageModel, text: str) -> str:
+def summarize(llm: BaseLanguageModel, main_query: str, query_results: str) -> str:
     summary_chain = get_summary_chain(llm=llm)
     return summary_chain(
         inputs={
-            'summary_length': MAX_SUMMARY_LENGTH,
-            'text': text
+            'query': main_query,
+            'results': query_results,
+            'summary_length': MAX_SUMMARY_LENGTH
         }
     )['text']
 
@@ -81,12 +88,12 @@ def get_retrieval_tool() -> BaseTool:
 
             output = []
             for sq, result in result_map.items():
-                output.append(f'QUERY: {sq}\nSOURCE: {subquery_map[sq]}\nRESULT: {result}')
+                output.append(f'SUB QUERY: {sq}\nSOURCE: {subquery_map[sq]}\nRESULT: {result}')
 
-            return summarize(llm=query_llm, text='\n'.join(output))
+            return summarize(llm=query_llm, main_query=query, query_results='\n'.join(output))
 
         except Exception as e:
-            return """Failed to preform retrieval, might be caused by an error in one of the subqueries. Try again, 
+            return """Failed to preform retrieval, might be caused by an error in one of the sub queries. Try again, 
             but if you get another failed retrieval it might need some time for the problem to be fixed."""
 
     return Tool(
