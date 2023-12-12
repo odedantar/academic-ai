@@ -1,45 +1,88 @@
+import json
 import asyncio
 import requests
 import threading
 from queue import Queue
 from typing import Dict, Awaitable
 from requests import Response
+from jsonschema import validate, ValidationError
 
-from config import API_BASE_URL
+from config import AI_API_URL
+
 
 REQUEST_TIMEOUT = 180  # In seconds
 
+# Define the JSON schema
+answer_schema = {
+    "type": "object",
+    "properties": {
+        "answer": {
+            "type": "string",
+        }
+    }, "required": ["answer"]
+}
 
-def math_bot(text: str) -> Awaitable[Response]:
+
+async def task_request(task: str):
     event_loop = asyncio.get_event_loop()
 
-    url = API_BASE_URL + '/math'
-    data = {'text': text}
+    url = AI_API_URL + '/discord/task'
+    headers = {'Content-Type': 'application/json'}
+    json_data = json.dumps({'task': task})
 
-    print("Sending API request to: " + url + "...")
-    request = event_loop.run_in_executor(None, lambda: requests.post(url=url, data=data, timeout=REQUEST_TIMEOUT))
-    return request
+    print("Sending API request to: " + url)
+    request = event_loop.run_in_executor(None, lambda: requests.post(
+        url=url,
+        headers=headers,
+        data=json_data,
+        timeout=REQUEST_TIMEOUT
+    ))
+
+    while not request.done():
+        await asyncio.sleep(1)
+    response = await request
+
+    try:
+        response_json = response.json()
+    except json.JSONDecodeError:
+        print('Invalid JSON')
+    else:
+        try:
+            validate(response_json, answer_schema)
+        except ValidationError as e:
+            print('Invalid JSON schema:', e)
+        else:
+            return response_json
 
 
-def math_bot_stream(text: str, stream_queue: Queue):
-    url = API_BASE_URL + '/math/stream'
-    data = {'text': text}
+async def task_stream(task: str, stream_queue: Queue):
+    event_loop = asyncio.get_event_loop()
 
-    def streamer(url: str, data: Dict, queue: Queue):
-        print("Stream thread: Sending API request to: " + url + "...")
-        stream = requests.post(url=url, data=data, stream=True)
-        print("Stream thread: Stream has began")
-        for chunk in stream.iter_content(chunk_size=1024):
-            if chunk:
-                print("Stream thread: Putting chunk in queue...")
-                queue.put(chunk.decode('utf-8'))
+    url = AI_API_URL + '/discord/task/stream'
+    headers = {'Content-Type': 'application/json'}
+    json_data = json.dumps({'task': task})
 
-        queue.put(None)
+    print("Sending API request to: " + url)
+    request = event_loop.run_in_executor(None, lambda: requests.post(
+        url=url,
+        headers=headers,
+        data=json_data,
+        stream=True
+    ))
 
-    stream_thread = threading.Thread(target=streamer, args=[url, data, stream_queue])
+    while not request.done():
+        await asyncio.sleep(1)
+    stream = await request
+
+    stream_thread = threading.Thread(target=streamer, args=[stream, stream_queue])
     stream_thread.start()
 
 
-if __name__ == "__main__":
-    resp = asyncio.run(math_bot("Hello"))
-    print(resp)
+def streamer(stream: Response, queue: Queue):
+    print("Stream thread: Stream has began")
+    for chunk in stream.iter_content(chunk_size=1024):
+        if chunk:
+            print("Stream thread: Putting chunk in queue...")
+            queue.put(chunk.decode('utf-8'))
+
+    queue.put(None)

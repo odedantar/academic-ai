@@ -2,7 +2,6 @@ import asyncio
 import discord
 import threading
 from queue import Queue
-from typing import Awaitable, Callable
 from discord import app_commands
 from discord.ext import commands
 
@@ -53,9 +52,10 @@ async def chat(interaction: discord.Interaction, message: str):
     event_loop = asyncio.get_event_loop()
 
     await interaction.response.defer()
-    api.math_bot_stream(text=message, stream_queue=stream_queue)
+    await api.task_stream(task=message, stream_queue=stream_queue)
 
-    context = await interaction.channel.send(content="**Response:**")
+    await interaction.channel.send(content="**Response:**")
+
     print("Discord thread: Starting thread")
     queue_thread = threading.Thread(target=queue_handler, args=[stream_queue, chat_queue])
     queue_thread.start()

@@ -8,5 +8,5 @@ load_dotenv()
 DISCORD_TOKEN = os.environ['DISCORD_TOKEN']
 GUILD_ID = int(os.environ['GUILD_ID'])
 
-# API
-API_BASE_URL = os.environ['API_BASE_URL']
+# AI API
+AI_API_URL = os.environ['AI_API_URL']
