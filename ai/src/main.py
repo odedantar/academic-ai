@@ -5,7 +5,7 @@ from flask import Flask, Response, request, jsonify, stream_with_context
 from jsonschema import validate, ValidationError
 from multiprocessing import Process, Manager
 
-from agents import get_agent
+from agent_builder import build_agent
 from utilities.config import SERVER_HOST, SERVER_PORT
 
 
@@ -39,11 +39,12 @@ async def task():
     task = request.json['task']
 
     try:
-        agent = get_agent()
+        agent = build_agent()
         event_loop = asyncio.get_event_loop()
+        
         result = await event_loop.run_in_executor(None, lambda: agent.invoke(task))
-
-        return jsonify({"answer": result['output']}), 200
+        return jsonify({"answer": result}), 200
+        # return jsonify({"answer": result['output']}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400
@@ -66,7 +67,7 @@ def task_stream():
 
     try:
         queue = Queue()
-        agent = get_agent(stream_queue=queue)
+        agent = build_agent(stream_queue=queue)
 
         thread = threading.Thread(target=agent.invoke, args=[task])
         thread.start()
@@ -96,7 +97,7 @@ def local_run():
     timeout = 240  # Seconds
 
     text = """What are the main topics in classical physics academic syllabus?"""
-
+    
     in_args = {'text': text}
     out_args = manager.dict()  # This is the dict we can access both in and out of the processes.
     out_args['answer'] = ''
@@ -113,9 +114,10 @@ def local_run():
 
 
 def worker(in_args: dict, out_args: dict):
-    agent = get_agent()
+    agent = build_agent()
     text = in_args['text']
-    out_args['answer'] = agent.invoke(text)['output']
+    # out_args['answer'] = agent.invoke(text)['output']
+    out_args['answer'] = agent.invoke(text)
 
 
 if __name__ == '__main__':

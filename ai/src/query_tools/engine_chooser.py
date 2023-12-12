@@ -5,7 +5,7 @@ from langchain.chains import LLMChain
 from langchain.schema.language_model import BaseLanguageModel
 
 
-query_template = """You are given a query and a list of query engine names with their description:
+engine_template = """You are given a query and a list of query engine names with their description:
 
 QUERY: 
 {query}
@@ -30,10 +30,10 @@ json_scheme = """{"engine": "engine name"}"""
 
 
 def get_engine_chooser_chain(llm: BaseLanguageModel) -> LLMChain:
-    query_prompt = PromptTemplate.from_template(query_template)
-    query_chain = LLMChain(llm=llm, prompt=query_prompt)
+    engine_prompt = PromptTemplate.from_template(engine_template)
+    engine_chain = LLMChain(llm=llm, prompt=engine_prompt)
 
-    return query_chain
+    return engine_chain
 
 
 def choose_query_engine(llm: BaseLanguageModel, query: str, query_engines: Dict[str, str]) -> str:

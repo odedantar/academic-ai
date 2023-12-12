@@ -1,10 +1,10 @@
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
-from langchain.tools import Tool
+from langchain.tools import BaseTool
 from langchain.schema.language_model import BaseLanguageModel
 
-from math_tools.latex_transformer import get_latex_chain
-from utilities.tool_wrapper import get_multivariable_chain_tool
+from math_tools.latex_writer import get_latex_sequence
+from utilities.tool_wrapper import sequential_chain_as_tool
 
 
 solver_template = """As part of your training you've acquired great knowledge, abilities and rigor in a wide 
@@ -34,17 +34,18 @@ variables = {
 def get_question_solver_tool(
         llm: BaseLanguageModel,
         latex_llm: BaseLanguageModel = None,
-        wrapper_llm: BaseLanguageModel = None) -> Tool:
+        wrapper_llm: BaseLanguageModel = None
+) -> BaseTool:
 
     solver_prompt = PromptTemplate.from_template(solver_template)
-    solver_chain = get_latex_chain(
+    solver_chain = get_latex_sequence(
         llm=llm if not latex_llm else latex_llm,
         input_chain=LLMChain(llm=llm, prompt=solver_prompt)
     )
 
-    return get_multivariable_chain_tool(
+    return sequential_chain_as_tool(
         llm=llm if not wrapper_llm else wrapper_llm,
-        multivariable_chain=solver_chain,
+        sequential_chain=solver_chain,
         variables=variables,
         tool_name="Math question solver",
         tool_description=("Useful for SOLVING math questions, one at a time. "
