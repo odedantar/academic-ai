@@ -1,10 +1,10 @@
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
-from langchain.tools import Tool
+from langchain.tools import BaseTool
 from langchain.schema.language_model import BaseLanguageModel
 
-from math_tools.latex_transformer import get_latex_chain
-from utilities.tool_wrapper import get_multivariable_chain_tool
+from math_tools.latex_writer import get_latex_sequence
+from utilities.tool_wrapper import sequential_chain_as_tool
 
 
 proofreader_template = """The text below is an attempt at mathematical writing. It might be well written, 
@@ -33,16 +33,16 @@ def get_proofreader_tool(
         llm: BaseLanguageModel,
         latex_llm: BaseLanguageModel = None,
         wrapper_llm: BaseLanguageModel = None
-) -> Tool:
+) -> BaseTool:
     proofreader_prompt = PromptTemplate.from_template(template=proofreader_template)
-    proofreader_chain = get_latex_chain(
+    proofreader_chain = get_latex_sequence(
         llm=llm if not latex_llm else latex_llm,
         input_chain=LLMChain(llm=llm, prompt=proofreader_prompt)
     )
 
-    return get_multivariable_chain_tool(
+    return sequential_chain_as_tool(
         llm=llm if not wrapper_llm else wrapper_llm,
-        multivariable_chain=proofreader_chain,
+        sequential_chain=proofreader_chain,
         variables=variables,
         tool_name="Math proofreader",
         tool_description=("Useful for PROOFREADING mathematical texts, one at a time. "

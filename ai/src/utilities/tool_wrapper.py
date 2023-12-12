@@ -25,9 +25,9 @@ JSON:
 """
 
 
-def get_multivariable_chain_tool(
+def chain_as_tool(
         llm: BaseLanguageModel,
-        multivariable_chain: LLMChain,
+        chain: LLMChain,
         variables: dict,
         tool_name: str,
         tool_description: str
@@ -37,14 +37,14 @@ def get_multivariable_chain_tool(
         json_scheme = ',\n\t'.join(['"' + name + '": "' + desc + '"' for name, desc in variables.items()])
         json_scheme = '{\n\t' + json_scheme + '\n}'
 
-        prompt = PromptTemplate.from_template(wrapper_template)
-        chain = LLMChain(llm=llm, prompt=prompt)
+        wrapper_prompt = PromptTemplate.from_template(wrapper_template)
+        wrapper_chain = LLMChain(llm=llm, prompt=wrapper_prompt)
 
         # check for the values we have been given
         if not request:
             return """Could not continue with an empty request from the tool"""
 
-        response = chain(
+        response = wrapper_chain(
             inputs={
                 'json_scheme': json_scheme,
                 'request': request
@@ -56,7 +56,53 @@ def get_multivariable_chain_tool(
         try:
             inputs = json.loads(scheme, strict=False)
 
-            return multivariable_chain.invoke(inputs)['output']['text']
+            output = chain.invoke(inputs)
+            return output['text']
+
+        except ValueError as e:
+            return """Failed to parse tool request to tool variables. 
+            Try editing the input to not include JSON problematic characters like '{' and '}'."""
+
+    return Tool(
+        name=tool_name,
+        func=tool_wrapper,
+        description=tool_description
+    )
+
+
+def sequential_chain_as_tool(
+        llm: BaseLanguageModel,
+        sequential_chain: LLMChain,
+        variables: dict,
+        tool_name: str,
+        tool_description: str
+) -> BaseTool:
+
+    def tool_wrapper(request: Optional[str] = None) -> str:
+        json_scheme = ',\n\t'.join(['"' + name + '": "' + desc + '"' for name, desc in variables.items()])
+        json_scheme = '{\n\t' + json_scheme + '\n}'
+
+        wrapper_prompt = PromptTemplate.from_template(wrapper_template)
+        wrapper_chain = LLMChain(llm=llm, prompt=wrapper_prompt)
+
+        # check for the values we have been given
+        if not request:
+            return """Could not continue with an empty request from the tool"""
+
+        response = wrapper_chain(
+            inputs={
+                'json_scheme': json_scheme,
+                'request': request
+            })
+        scheme = response['text']
+        scheme = scheme.replace('```json', '')
+        scheme = scheme.replace('```', '')
+
+        try:
+            inputs = json.loads(scheme, strict=False)
+
+            output = sequential_chain.invoke(inputs)
+            return output['output']['text']
 
         except ValueError as e:
             return """Failed to parse tool request to tool variables. 
