@@ -112,7 +112,7 @@ class CustomAgent:
         console.bold('\n> CustomAgent is running\n')
 
         self.process += f"\nQuestion: {question}"
-        self.stream.write(f"\nQuestion: {question}\n")
+        self.stream.write(f"\nQuestion: {question}")
 
         for i in range(self.max_iter):
             data = self.step()

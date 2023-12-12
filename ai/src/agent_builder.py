@@ -21,6 +21,11 @@ def build_agent(stream_queue: Queue = None):
         streamers=agent_streamer
     )
 
+    custom_agent_llm = get_openai_llm(
+        temperature=0.05,
+        model_name='gpt-4-1106-preview'
+    )
+
     retrieval_tool = get_retrieval_tool()
     math_tool = get_math_tool(
         max_iter=MAX_ITERATIONS,
@@ -32,7 +37,7 @@ def build_agent(stream_queue: Queue = None):
     tools = [retrieval_tool, math_tool]
 
     stream = CustomStream(queue=stream_queue, is_verbose=True)
-    agent = CustomAgent(llm=agent_llm, tools=tools, max_iterations=MAX_ITERATIONS, stream=stream)
+    agent = CustomAgent(llm=custom_agent_llm, tools=tools, max_iterations=MAX_ITERATIONS, stream=stream)
     return agent
 
     # agent_instructions = "Try 'Knowledge Internal Base' tool first, Use the other tools if these don't work."
