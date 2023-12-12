@@ -1,14 +1,11 @@
-# docker build -t math-agent .
-# docker run --name math-agent -p 5000:5000 math-agent
+# docker build -t ai-srvc-img .
+# docker run --name ai-srvc -p 5000:5000 ai-srvc-img
 
 FROM python:3.9-alpine
 
 RUN python -m pip install --upgrade pip
 
 WORKDIR /ai
-
-# COPY requirements.txt .
-# RUN pip install --no-cache-dir -r requirements.txt
 
 RUN pip --no-cache-dir install openai
 RUN pip --no-cache-dir install langchain

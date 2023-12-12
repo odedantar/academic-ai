@@ -1,21 +1,24 @@
+# docker-compose up
+# docker-compose down --rmi all -v
+
 version: "3.8"
 services:
-  discord_bot:
+  discord_service:
     build: ./discord
-    container_name: discord_bot
+    container_name: discord-srvc
     links:
-      - math_agent
+      - ai_service
 
-  math_agent:
+  ai_service:
     build: ./ai
-    container_name: math_agent
+    container_name: ai-srvc
     ports:
       - '5000:5000'
     links:
-      - vector_store
+      - faiss_service
 
-  vector_store:
+  faiss_service:
     build: ./db
-    container_name: vector_store
+    container_name: faiss-srvc
     ports:
       - '5001:5001'

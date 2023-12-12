@@ -2,6 +2,7 @@
 Useful documentation:
 https://python.langchain.com/docs/integrations/vectorstores/faiss
 https://medium.com/@ahmed.mohiuddin.architecture/using-ai-to-chat-with-your-documents-leveraging-langchain-faiss-and-openai-3281acfcc4e9
+https://medium.com/@onkarmishra/using-langchain-for-question-answering-on-own-data-3af0a82789ed
 """
 
 import asyncio
@@ -76,10 +77,19 @@ class CustomVectorStore:
         return documents
 
 
-def init_store(path):
+def init_store(paths: List):
     store = CustomVectorStore(is_initialized=False)
-    store.insert_pdf(pdf_path=path)
+    for path in paths:
+        print(f"Inserting: {path}")
+        store.insert_pdf(pdf_path=path)
 
 
 if __name__ == '__main__':
-    init_store("resources/documents/Introduction to Mechanics - Kleppner D. Kolenkow R.J. - 2014.pdf")
+    init_store([
+        "books/Introduction to Mechanics - Kleppner D. Kolenkow R.J. - 2014.pdf",
+        "books/Electricity and Magnetism - Purcell E.M., Morin D.J. - 2013.pdf",
+        "books/Linear Algebra Done Right - Sheldon Axler - 2015.pdf",
+        "books/Understanding Analysis - Stephen Abbott - 2001.pdf"
+        # "books/Topology - James R. Munkres - 2000.pdf",
+        # "books/Functional Analysis - Yuli Eidelman - 2004.pdf"
+    ])

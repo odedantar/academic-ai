@@ -1,14 +1,11 @@
-# docker build -t vector-store .
-# docker run --name vector-store -p 5001:5001 vector-store
+# docker build -t faiss-srvc-img .
+# docker run --name faiss-srvc-img -p 5001:5001 faiss-srvc
 
 FROM python:3.9
 
 RUN python -m pip install --upgrade pip
 
 WORKDIR /db
-
-# COPY requirements.txt .
-# RUN pip install --no-cache-dir -r requirements.txt
 
 RUN pip --no-cache-dir install langchain
 RUN pip --no-cache-dir install openai

@@ -30,7 +30,6 @@ async def task_request(task: str):
     headers = {'Content-Type': 'application/json'}
     json_data = json.dumps({'task': task})
 
-    print("Sending API request to: " + url)
     request = event_loop.run_in_executor(None, lambda: requests.post(
         url=url,
         headers=headers,
@@ -44,13 +43,13 @@ async def task_request(task: str):
 
     try:
         response_json = response.json()
-    except json.JSONDecodeError:
-        print('Invalid JSON')
+    except json.JSONDecodeError as e:
+        raise e
     else:
         try:
             validate(response_json, answer_schema)
         except ValidationError as e:
-            print('Invalid JSON schema:', e)
+            raise e
         else:
             return response_json
 
@@ -62,7 +61,6 @@ async def task_stream(task: str, stream_queue: Queue):
     headers = {'Content-Type': 'application/json'}
     json_data = json.dumps({'task': task})
 
-    print("Sending API request to: " + url)
     request = event_loop.run_in_executor(None, lambda: requests.post(
         url=url,
         headers=headers,
@@ -79,10 +77,8 @@ async def task_stream(task: str, stream_queue: Queue):
 
 
 def streamer(stream: Response, queue: Queue):
-    print("Stream thread: Stream has began")
     for chunk in stream.iter_content(chunk_size=1024):
         if chunk:
-            print("Stream thread: Putting chunk in queue...")
             queue.put(chunk.decode('utf-8'))
 
     queue.put(None)

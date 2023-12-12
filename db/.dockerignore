@@ -1,2 +1,5 @@
 # Python virtualenv
 venv
+
+# Local documents
+src/books

@@ -118,7 +118,7 @@ class CustomAgent:
             data = self.step()
 
             if data is None:
-                self.process = "\nCould not parse the answer.\nStick to the format you were given!"
+                self.process = "\n\nCould not parse the answer.\nStick to the format you were given!\n"
 
             elif 'answer' in data.keys():
                 self.answer = data['answer']

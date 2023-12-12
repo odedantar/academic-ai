@@ -9,21 +9,22 @@ from query_tools.subquery_writer import get_subqueries
 from query_tools.engine_chooser import choose_query_engine
 from query_tools.wikipedia import get_wikipedia_query_tool
 from query_tools.serper_api import get_google_search_tool
+from query_tools.vector_store import get_vector_store_tool
 
 
-MAX_SUMMARY_LENGTH = 200  # Word count
+MAX_SUMMARY_LENGTH = 150  # Word count
 
-summary_template = """You are given a main query and the results of several sub queries which were 
-derived from the main one. 
+summary_template = f"""You are given a main query and the results of several sub queries which were 
+derived from the main one:
 
 MAIN QUERY: 
-{query}
+{{query}}
 
 RESULTS:
-{results}
+{{results}}
 
 Summarize the results with the aim of answering the main query. Write only the summary and nothing more. 
-Summarize based only on the results you were given. Keep the summary under {summary_length} words.
+Summarize based only on the results you were given. The summary should be no more than {MAX_SUMMARY_LENGTH} words.
 
 Begin!
 
@@ -43,8 +44,7 @@ def summarize(llm: BaseLanguageModel, main_query: str, query_results: str) -> st
     return summary_chain(
         inputs={
             'query': main_query,
-            'results': query_results,
-            'summary_length': MAX_SUMMARY_LENGTH
+            'results': query_results
         }
     )['text']
 
@@ -55,21 +55,15 @@ def get_retrieval_tool() -> BaseTool:
         model_name='gpt-4-1106-preview'
     )
 
+    tools = [get_wikipedia_query_tool(), get_google_search_tool(llm=query_llm), get_vector_store_tool()]
+
     engines = {
-        "wikipedia": {
-            "description": "Largest online collaborative encyclopedia",
-            "tool": get_wikipedia_query_tool()
-        },
-        "google": {
-            "description": "The leading web search engine these days.",
-            "tool": get_google_search_tool(llm=query_llm)
-        }
-        # "arxiv": {
-        #     "description": "Largest academic papers archive in the fields of exact sciences",
-        #     "tool": lambda: None
-        # }
+        t.name: {
+            'description': t.description,
+            'tool': t
+        } for t in tools
     }
-    engine_descriptions = {name: engine['description'] for name, engine in engines.items()}
+    engines_desc = {t.name: t.description for t in tools}
 
     def tool_wrapper(query: Optional[str] = None) -> str:
         if not query:
@@ -80,7 +74,7 @@ def get_retrieval_tool() -> BaseTool:
 
             subquery_map = {}
             for sq in subqueries:
-                subquery_map[sq] = choose_query_engine(llm=query_llm, query=sq, query_engines=engine_descriptions)
+                subquery_map[sq] = choose_query_engine(llm=query_llm, query=sq, query_engines=engines_desc)
 
             result_map = {}
             for sq, engine in subquery_map.items():

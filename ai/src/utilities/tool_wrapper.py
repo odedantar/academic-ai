@@ -113,3 +113,52 @@ def sequential_chain_as_tool(
         func=tool_wrapper,
         description=tool_description
     )
+
+
+def code_chain_as_tool(
+        llm: BaseLanguageModel,
+        chain: LLMChain,
+        variables: dict,
+        tool_name: str,
+        tool_description: str,
+        language: str
+) -> BaseTool:
+
+    def tool_wrapper(request: Optional[str] = None) -> str:
+        json_scheme = ',\n\t'.join(['"' + name + '": "' + desc + '"' for name, desc in variables.items()])
+        json_scheme = '{\n\t' + json_scheme + '\n}'
+
+        wrapper_prompt = PromptTemplate.from_template(wrapper_template)
+        wrapper_chain = LLMChain(llm=llm, prompt=wrapper_prompt)
+
+        # check for the values we have been given
+        if not request:
+            return """Could not continue with an empty request from the tool"""
+
+        response = wrapper_chain(
+            inputs={
+                'json_scheme': json_scheme,
+                'request': request
+            })
+        scheme = response['text']
+        scheme = scheme.replace('```json', '')
+        scheme = scheme.replace('```', '')
+
+        try:
+            inputs = json.loads(scheme, strict=False)
+
+            output = chain.invoke(inputs)['text']
+            output = output.replace(f'```{language}', '')
+            output = output.replace('```', '')
+
+            return f"\n```{language}\n{output}\n```\n"
+
+        except ValueError as e:
+            return """Failed to parse tool request to tool variables. 
+            Try editing the input to not include JSON problematic characters like '{' and '}'."""
+
+    return Tool(
+        name=tool_name,
+        func=tool_wrapper,
+        description=tool_description
+    )

@@ -8,7 +8,7 @@ from agent_builder import build_agent
 from utilities.config import SERVER_HOST, SERVER_PORT
 
 
-STREAM_CHUNK_SIZE = 50
+STREAM_CHUNK_SIZE = 1
 
 app = Flask(__name__)
 

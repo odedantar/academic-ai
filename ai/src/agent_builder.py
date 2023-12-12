@@ -29,7 +29,7 @@ def build_agent(stream_queue: Queue = None):
     retrieval_tool = get_retrieval_tool()
     math_tool = get_math_tool(
         max_iter=MAX_ITERATIONS,
-        stream_queue=stream_queue,
+        # stream_queue=stream_queue,
         timeout=120
     )
 

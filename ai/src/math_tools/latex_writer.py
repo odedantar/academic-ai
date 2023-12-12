@@ -4,7 +4,7 @@ from langchain.tools import BaseTool
 from langchain.schema.language_model import BaseLanguageModel
 from langchain.schema.runnable import RunnablePassthrough
 
-from utilities.tool_wrapper import chain_as_tool
+from utilities.tool_wrapper import code_chain_as_tool
 
 
 latex_template = """Rewrite the following text in LaTeX syntax.
@@ -40,10 +40,11 @@ def get_latex_tool(
 ) -> BaseTool:
     latex_chain = get_latex_chain(llm=llm)
 
-    return chain_as_tool(
+    return code_chain_as_tool(
         llm=llm if not wrapper_llm else wrapper_llm,
         chain=latex_chain,
         variables=variables,
         tool_name="LaTeX typer",
-        tool_description="Useful for typing a given text in LaTeX syntax"
+        tool_description="Useful for typing a given text in LaTeX syntax",
+        language="latex"
     )

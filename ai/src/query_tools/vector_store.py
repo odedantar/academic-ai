@@ -70,7 +70,7 @@ def get_vector_store_tool() -> BaseTool:
     return Tool(
         name='Syllabus',
         func=tool_wrapper,
-        description='Useful for when you need to query for data from an academic syllabus and books'
+        description='Useful for when you need to query for data from academic books and syllabi'
     )
 
 

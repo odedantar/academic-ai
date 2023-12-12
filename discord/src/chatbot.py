@@ -8,7 +8,7 @@ from discord.ext import commands
 import agents_api as api
 from config import DISCORD_TOKEN, GUILD_ID
 
-MESSAGE_MAX_LENGHT = 1900
+MESSAGE_MAX_LENGTH = 1900
 
 
 # Discord API data
@@ -39,13 +39,16 @@ async def chat(interaction: discord.Interaction, message: str):
                 await asyncio.sleep(1)
                 continue
 
-            print("Chat async: Sending message")
             content = chat_queue.get(block=False)
 
             if not content:
                 break
 
             await interaction.channel.send(content=content)
+
+        await interaction.followup.send('{user} the task is complete.'.format(
+            user=interaction.user.mention
+        ))
 
     chat_queue = Queue()
     stream_queue = Queue()
@@ -54,19 +57,12 @@ async def chat(interaction: discord.Interaction, message: str):
     await interaction.response.defer()
     await api.task_stream(task=message, stream_queue=stream_queue)
 
-    await interaction.channel.send(content="**Response:**")
-
-    print("Discord thread: Starting thread")
     queue_thread = threading.Thread(target=queue_handler, args=[stream_queue, chat_queue])
     queue_thread.start()
 
     event_loop.create_task(chat_handler(
         chat_queue=chat_queue,
         interaction=interaction
-    ))
-    await interaction.followup.send('{user}: "{message}"'.format(
-        user=interaction.user.mention,
-        message=message
     ))
 
 
@@ -79,7 +75,6 @@ def queue_handler(stream_queue: Queue, chat_queue: Queue):
         if stream_queue.empty():
             continue
 
-        print("Discord thread: Reading stream queue...")
         chunk = stream_queue.get(block=False)
 
         if not chunk:
@@ -89,39 +84,33 @@ def queue_handler(stream_queue: Queue, chat_queue: Queue):
         lines = chunk.split('\n')
         leftover = lines.pop()
 
-        print("Discord thread: Entering lines loop...")
         for line in lines:
             if is_block:
                 if '```' in line:
-                    print("Discord thread: Ending code block")
                     text += '\n' + line
                     is_block = False
                     chat_queue.put(text)
                 else:
-                    if len(text) >= MESSAGE_MAX_LENGHT:
-                        print("Discord thread: Splitting a long code block")
+                    if len(text) >= MESSAGE_MAX_LENGTH:
                         chat_queue.put(text + '\n```')
                         text = '```'
 
-                    print("Discord thread: Adding line to code block...")
                     text += '\n' + line
 
             else:
                 text = line
                 if '```' in line:
-                    print("Discord thread: Starting code block")
                     is_block = True
                 elif text != '':
                     chat_queue.put(highlight(text))
 
     if leftover != '':
-        print("Discord thread: Putting leftover")
         chat_queue.put(highlight(leftover))
     chat_queue.put(None)
 
 
 def highlight(text: str) -> str:
-    highlights = ['Thought:', 'Action:', 'Action Input:', 'Tool:', 'Final Answer:']
+    highlights = ['Question:', 'Thought:', 'Action:', 'Action Input:', 'Tool:', 'Observation:', 'Final Answer:']
 
     for h in highlights:
         text = text.replace(h, f'**{h}**')
