@@ -1,5 +1,5 @@
 # docker build -t vector-store .
-# docker run --name vector-store -p 5000:5000 vector-store
+# docker run --name vector-store -p 5001:5001 vector-store
 
 FROM python:3.9
 

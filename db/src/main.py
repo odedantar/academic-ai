@@ -4,6 +4,7 @@ from jsonschema import validate, ValidationError
 from config import VECTOR_STORE_PATH, SERVER_HOST, SERVER_PORT
 from vector_store import CustomVectorStore
 
+
 store = CustomVectorStore(path_to_index=VECTOR_STORE_PATH)
 app = Flask(__name__)
 
@@ -18,14 +19,14 @@ vector_search_schema = {
             "minimum": 1,
             "maximum": 10
         }
-    },
-    "required": ["query"]
+    }, "required": ["query"]
 }
 
 
 @app.route("/vector/search", methods=['POST'])
 async def faiss_search():
     data = request.get_json()
+
     if data is None:
         return jsonify({"error": "Empty JSON"}), 400
 

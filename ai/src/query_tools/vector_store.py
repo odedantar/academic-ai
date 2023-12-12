@@ -7,6 +7,7 @@ from langchain.tools import BaseTool, Tool
 
 from utilities.config import VS_API_URL
 
+
 REQUEST_TIMEOUT = 180  # In seconds
 
 # Define the JSON schema
@@ -40,7 +41,7 @@ async def vector_search(query: str, k: Optional[int] = 3) -> List[Dict[str, str]
 
     # Send the request with the JSON data
     event_loop = asyncio.get_event_loop()
-    request = event_loop.run_in_executor(None, lambda: requests.post(url, headers=headers, data=json_data))
+    request = event_loop.run_in_executor(None, lambda: requests.post(url=url, headers=headers, data=json_data))
     while not request.done():
         await asyncio.sleep(1)
     response = await request

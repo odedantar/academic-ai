@@ -6,6 +6,7 @@ from utilities.streamers import StreamHandler
 from query_tools.query_tool import get_query_tool
 from math_tools.math_tool import get_math_tool
 
+
 MAX_ITERATIONS = 6  # Num. of iterations
 AGENT_TIMEOUT = 240  # In seconds
 

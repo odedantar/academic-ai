@@ -15,7 +15,7 @@ RUN pip --no-cache-dir install langchain
 RUN pip --no-cache-dir install wikipedia
 RUN pip --no-cache-dir install wolframalpha
 RUN pip --no-cache-dir install python-dotenv
-RUN pip --no-cache-dir install flask
+RUN pip --no-cache-dir install flask[async]
 RUN pip --no-cache-dir install requests
 RUN pip --no-cache-dir install jsonschema
 
