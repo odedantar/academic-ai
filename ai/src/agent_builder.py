@@ -6,6 +6,7 @@ from utilities.streamers import StreamHandler
 from query_tools.retrieval_tool import get_retrieval_tool
 from math_tools.math_tool import get_math_tool
 from agents.custom_agent import CustomAgent
+from agents.custom_stream import CustomStream
 
 MAX_ITERATIONS = 10  # Num. of iterations
 AGENT_TIMEOUT = 240  # In seconds
@@ -30,7 +31,8 @@ def build_agent(stream_queue: Queue = None):
     # when giving tools to LLM, we must pass as list of tools
     tools = [retrieval_tool, math_tool]
 
-    agent = CustomAgent(llm=agent_llm, tools=tools, max_iterations=MAX_ITERATIONS)
+    stream = CustomStream(queue=stream_queue, is_verbose=True)
+    agent = CustomAgent(llm=agent_llm, tools=tools, max_iterations=MAX_ITERATIONS, stream=stream)
     return agent
 
     # agent_instructions = "Try 'Knowledge Internal Base' tool first, Use the other tools if these don't work."
