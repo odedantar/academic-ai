@@ -1,10 +1,10 @@
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
-from langchain.tools import BaseTool
 from langchain.schema.language_model import BaseLanguageModel
 
+from framework.agent_tool import AgentTool
 from math_tools.latex_writer import get_latex_sequence
-from utilities.tool_wrapper import sequential_chain_as_tool
+from framework.chain_wrappers import sequential_chain_as_tool
 
 
 writer_template = """Write a new math question relevant to the field of {math_field}, involving {field_subjects}, 
@@ -41,7 +41,7 @@ def get_question_writer_tool(
         llm: BaseLanguageModel,
         latex_llm: BaseLanguageModel = None,
         wrapper_llm: BaseLanguageModel = None
-) -> BaseTool:
+) -> AgentTool:
     writer_prompt = PromptTemplate.from_template(template=writer_template)
     writer_chain = get_latex_sequence(
         llm=llm if not latex_llm else latex_llm,

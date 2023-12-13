@@ -1,10 +1,10 @@
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
-from langchain.tools import BaseTool
 from langchain.schema.language_model import BaseLanguageModel
 from langchain.schema.runnable import RunnablePassthrough
 
-from utilities.tool_wrapper import code_chain_as_tool
+from framework.agent_tool import AgentTool
+from framework.chain_wrappers import code_chain_as_tool
 
 
 latex_template = """Rewrite the following text in LaTeX syntax.
@@ -37,7 +37,7 @@ def get_latex_sequence(llm: BaseLanguageModel, input_chain: LLMChain):
 def get_latex_tool(
         llm: BaseLanguageModel,
         wrapper_llm: BaseLanguageModel = None
-) -> BaseTool:
+) -> AgentTool:
     latex_chain = get_latex_chain(llm=llm)
 
     return code_chain_as_tool(

@@ -2,8 +2,9 @@ import json
 from typing import Optional
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
-from langchain.tools import BaseTool, Tool
 from langchain.schema.language_model import BaseLanguageModel
+
+from framework.agent_tool import AgentTool
 
 
 wrapper_template = """Here is a documentation of a specific JSON scheme:
@@ -31,9 +32,9 @@ def chain_as_tool(
         variables: dict,
         tool_name: str,
         tool_description: str
-) -> BaseTool:
+) -> AgentTool:
 
-    def tool_wrapper(request: Optional[str] = None) -> str:
+    def wrapper(request: Optional[str] = None) -> str:
         json_scheme = ',\n\t'.join(['"' + name + '": "' + desc + '"' for name, desc in variables.items()])
         json_scheme = '{\n\t' + json_scheme + '\n}'
 
@@ -63,9 +64,9 @@ def chain_as_tool(
             return """Failed to parse tool request to tool variables. 
             Try editing the input to not include JSON problematic characters like '{' and '}'."""
 
-    return Tool(
+    return AgentTool(
+        function=wrapper,
         name=tool_name,
-        func=tool_wrapper,
         description=tool_description
     )
 
@@ -76,9 +77,9 @@ def sequential_chain_as_tool(
         variables: dict,
         tool_name: str,
         tool_description: str
-) -> BaseTool:
+) -> AgentTool:
 
-    def tool_wrapper(request: Optional[str] = None) -> str:
+    def wrapper(request: Optional[str] = None) -> str:
         json_scheme = ',\n\t'.join(['"' + name + '": "' + desc + '"' for name, desc in variables.items()])
         json_scheme = '{\n\t' + json_scheme + '\n}'
 
@@ -108,9 +109,9 @@ def sequential_chain_as_tool(
             return """Failed to parse tool request to tool variables. 
             Try editing the input to not include JSON problematic characters like '{' and '}'."""
 
-    return Tool(
+    return AgentTool(
+        function=wrapper,
         name=tool_name,
-        func=tool_wrapper,
         description=tool_description
     )
 
@@ -122,9 +123,9 @@ def code_chain_as_tool(
         tool_name: str,
         tool_description: str,
         language: str
-) -> BaseTool:
+) -> AgentTool:
 
-    def tool_wrapper(request: Optional[str] = None) -> str:
+    def wrapper(request: Optional[str] = None) -> str:
         json_scheme = ',\n\t'.join(['"' + name + '": "' + desc + '"' for name, desc in variables.items()])
         json_scheme = '{\n\t' + json_scheme + '\n}'
 
@@ -157,8 +158,8 @@ def code_chain_as_tool(
             return """Failed to parse tool request to tool variables. 
             Try editing the input to not include JSON problematic characters like '{' and '}'."""
 
-    return Tool(
+    return AgentTool(
+        function=wrapper,
         name=tool_name,
-        func=tool_wrapper,
         description=tool_description
     )

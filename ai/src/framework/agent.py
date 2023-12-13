@@ -1,13 +1,15 @@
+import inspect
+import asyncio
 from queue import Queue
 from typing import List, Dict, Union, Optional
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
-from langchain.tools import BaseTool
 from langchain.schema.language_model import BaseLanguageModel
 
-from agents import console
-from agents.keywords import Keyword
-from agents.custom_stream import CustomStream
+from framework import console
+from framework.keywords import Keyword
+from framework.agent_tool import AgentTool
+from framework.agent_stream import AgentStream
 
 
 step_template = f"""You are a great decision maker but terrible at anything else.
@@ -36,24 +38,24 @@ When you write the input for the tools, give as much details as are known to you
 Begin!
 
 {Keyword.QUESTION} {{question}}
-{{process}}
+{{workflow}}
 """
 
 
-class CustomAgent:
+class Agent:
     def __init__(
             self, llm: BaseLanguageModel,
-            tools: List[BaseTool],
+            tools: List[AgentTool],
             max_iterations: int,
-            stream: Optional[CustomStream] = None):
+            stream: Optional[AgentStream] = None):
 
         self.model = llm
         self.tools = tools
         self.max_iter = max_iterations
-        self.stream = CustomStream(queue=Queue(), is_verbose=True) if not stream else stream
+        self.stream = AgentStream(queue=Queue(), is_verbose=True) if not stream else stream
 
         self.question = ''
-        self.process = ''
+        self.workflow = ''
         self.answer = ''
         self.tool_list = [f'{t.name}' for t in self.tools]
         self.tool_names = ','.join([f'{t.name}' for t in self.tools])
@@ -69,7 +71,7 @@ class CustomAgent:
                     'tool_desc': self.tool_desc,
                     'tool_names': self.tool_names,
                     'question': self.question,
-                    'process': self.process
+                    'workflow': self.workflow
                 }
             )
             step = output['text']
@@ -104,52 +106,60 @@ class CustomAgent:
         except Exception as e:
             raise e
 
-    def invoke(self, question: str) -> str:
+    def process_step(self, data: Dict) -> bool:
+        if data is None:
+            self.workflow += "\n\nCould not parse your thought.\nStick to the format you were given!\n"
+
+            return False
+
+        elif 'answer' in data.keys():
+            self.answer = data['answer']
+
+            self.workflow += f"\nThought: I now know the final answer"
+            self.stream.write(f"\nThought: I now know the final answer")
+
+            self.workflow += f"\nFinal Answer: {data['answer']}"
+            self.stream.write(f"\nFinal Answer: {data['answer']}")
+
+            return True
+
+        else:
+            self.workflow += f"\nThought: {data['thought']}"
+            self.stream.write(f"\nThought: {data['thought']}")
+
+            self.workflow += f"\nAction: {data['tool']}"
+            self.stream.write(f"\nAction: {data['tool']}")
+
+            self.workflow += f"\nAction Input: {data['input']}"
+            self.stream.write(f"\nAction Input: {data['input']}")
+
+            return False
+
+    async def invoke(self, question: str) -> str:
         self.question = question
-        self.process = ''
+        self.workflow = ''
         self.answer = ''
 
         console.bold('\n> CustomAgent is running\n')
 
-        self.process += f"\nQuestion: {question}"
+        self.workflow += f"\nQuestion: {question}"
         self.stream.write(f"\nQuestion: {question}")
 
         for i in range(self.max_iter):
             data = self.step()
+            is_answered = self.process_step(data=data)
 
-            if data is None:
-                self.process = "\n\nCould not parse the answer.\nStick to the format you were given!\n"
-
-            elif 'answer' in data.keys():
-                self.answer = data['answer']
-
-                self.process += f"\nThought: I now know the final answer"
-                self.stream.write(f"\nThought: I now know the final answer")
-
-                self.process += f"\nFinal Answer: {data['answer']}"
-                self.stream.write(f"\nFinal Answer: {data['answer']}")
-
+            if is_answered:
                 break
 
             try:
-                self.process += f"\nThought: {data['thought']}"
-                self.stream.write(f"\nThought: {data['thought']}")
-
-                self.process += f"\nAction: {data['tool']}"
-                self.stream.write(f"\nAction: {data['tool']}")
-
-                self.process += f"\nAction Input: {data['input']}"
-                self.stream.write(f"\nAction Input: {data['input']}")
-
-                observation = self.tool_map[data['tool']].invoke(data['input'])
-
-                self.process += f"\nObservation: {observation}"
+                observation = await self.tool_map[data['tool']].invoke(data['input'])
+                self.workflow += f"\nObservation: {observation}"
                 self.stream.write(f"\nObservation: {observation}")
 
             except Exception as e:
                 self.stream.write(None)
                 console.bold('\n> CustomAgent is exiting due to exception...\n')
-
                 raise e
 
         self.stream.write(None)

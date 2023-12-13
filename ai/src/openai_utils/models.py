@@ -3,7 +3,7 @@ from langchain.chat_models import ChatOpenAI
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.chains.conversation.memory import ConversationBufferWindowMemory
 
-from utilities.config import OPENAI_API_KEY
+from config import OPENAI_API_KEY
 
 
 def get_openai_llm(

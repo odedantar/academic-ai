@@ -33,16 +33,16 @@ json_scheme = """{
 }"""
 
 
-def get_subquery_chain(llm: BaseLanguageModel) -> LLMChain:
+def get_sub_query_chain(llm: BaseLanguageModel) -> LLMChain:
     subquery_prompt = PromptTemplate.from_template(subquery_template)
     subquery_chain = LLMChain(llm=llm, prompt=subquery_prompt)
 
     return subquery_chain
 
 
-def get_subqueries(llm: BaseLanguageModel, query: str) -> List[str]:
-    subquery_chain = get_subquery_chain(llm)
-    response = subquery_chain(
+def get_sub_queries(llm: BaseLanguageModel, query: str) -> List[str]:
+    sub_query_chain = get_sub_query_chain(llm)
+    response = sub_query_chain(
         inputs={
             'query': query,
             'json_scheme': json_scheme
