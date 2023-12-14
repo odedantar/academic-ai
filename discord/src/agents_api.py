@@ -24,7 +24,7 @@ answer_schema = {
 
 
 async def task_request(task: str):
-    event_loop = asyncio.get_event_loop()
+    event_loop = asyncio.get_running_loop()
 
     url = AI_API_URL + '/discord/task'
     headers = {'Content-Type': 'application/json'}
@@ -55,7 +55,7 @@ async def task_request(task: str):
 
 
 async def task_stream(task: str, stream_queue: Queue):
-    event_loop = asyncio.get_event_loop()
+    event_loop = asyncio.get_running_loop()
 
     url = AI_API_URL + '/discord/task/stream'
     headers = {'Content-Type': 'application/json'}

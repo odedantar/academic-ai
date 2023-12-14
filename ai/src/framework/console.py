@@ -1,4 +1,4 @@
-from agents.keywords import keyword_list
+from framework.keywords import keyword_list
 
 
 class Color:

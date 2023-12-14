@@ -1,10 +1,10 @@
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
-from langchain.tools import BaseTool
 from langchain.schema.language_model import BaseLanguageModel
 
+from framework.agent_tool import AgentTool
 from math_tools.latex_writer import get_latex_sequence
-from utilities.tool_wrapper import sequential_chain_as_tool
+from framework.chain_wrappers import sequential_chain_as_tool
 
 
 solver_template = """As part of your training you've acquired great knowledge, abilities and rigor in a wide 
@@ -35,7 +35,7 @@ def get_question_solver_tool(
         llm: BaseLanguageModel,
         latex_llm: BaseLanguageModel = None,
         wrapper_llm: BaseLanguageModel = None
-) -> BaseTool:
+) -> AgentTool:
 
     solver_prompt = PromptTemplate.from_template(solver_template)
     solver_chain = get_latex_sequence(

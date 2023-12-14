@@ -2,7 +2,11 @@ from langchain.tools import BaseTool
 from langchain.agents import load_tools
 from langchain.schema.language_model import BaseLanguageModel
 
+from framework.agent_tool import AgentTool
 
-def get_google_search_tool(llm: BaseLanguageModel) -> BaseTool:
+
+def get_google_search_tool(llm: BaseLanguageModel) -> AgentTool:
     tools = load_tools(['google-serper'], llm=llm)
-    return tools[0]
+    tool = tools[0]
+
+    return AgentTool(function=tool.invoke, name=tool.name, description=tool.description)

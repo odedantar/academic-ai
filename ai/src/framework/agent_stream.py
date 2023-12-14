@@ -2,16 +2,19 @@ import asyncio
 from typing import Union, Optional
 from queue import Queue
 
-from agents import console
+from framework import console
 
 
-class CustomStream:
-    def __init__(self, queue: Queue, is_verbose: Optional[bool] = False):
+class AgentStream:
+    def __init__(
+            self, queue: Queue,
+            is_verbose: Optional[bool] = False):
+
         self.q = queue
         self.is_verbose = is_verbose
 
     def write(self, input: Union[str, None]):
-        if self.is_verbose and input is not None:
+        if input is not None and self.is_verbose:
             console.highlight(text=input)
 
         self.q.put(input)

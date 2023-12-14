@@ -52,7 +52,7 @@ async def chat(interaction: discord.Interaction, message: str):
 
     chat_queue = Queue()
     stream_queue = Queue()
-    event_loop = asyncio.get_event_loop()
+    event_loop = asyncio.get_running_loop()
 
     await interaction.response.defer()
     await api.task_stream(task=message, stream_queue=stream_queue)
@@ -89,10 +89,10 @@ def queue_handler(stream_queue: Queue, chat_queue: Queue):
                 if '```' in line:
                     text += '\n' + line
                     is_block = False
-                    chat_queue.put(text)
+                    chat_queue.put(highlight(text))
                 else:
                     if len(text) >= MESSAGE_MAX_LENGTH:
-                        chat_queue.put(text + '\n```')
+                        chat_queue.put(highlight(text) + '\n```')
                         text = '```'
 
                     text += '\n' + line

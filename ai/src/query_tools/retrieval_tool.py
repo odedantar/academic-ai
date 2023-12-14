@@ -1,13 +1,14 @@
+import asyncio
 from typing import Optional
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
-from langchain.tools import BaseTool, Tool
 from langchain.schema.language_model import BaseLanguageModel
 
-from utilities.models import get_openai_llm
-from query_tools.subquery_writer import get_subqueries
-from query_tools.engine_chooser import choose_query_engine
-from query_tools.wikipedia import get_wikipedia_query_tool
+from openai_utils.models import get_openai_llm
+from framework.agent_tool import AgentTool
+from query_tools.sub_query_writer import get_sub_queries
+from query_tools.engine_chooser import achoose_engine
+from query_tools.wikipedia import get_wikipedia_tool
 from query_tools.serper_api import get_google_search_tool
 from query_tools.vector_store import get_vector_store_tool
 
@@ -49,13 +50,12 @@ def summarize(llm: BaseLanguageModel, main_query: str, query_results: str) -> st
     )['text']
 
 
-def get_retrieval_tool() -> BaseTool:
-    query_llm = get_openai_llm(
-        temperature=0.25,
-        model_name='gpt-4-1106-preview'
-    )
-
-    tools = [get_wikipedia_query_tool(), get_google_search_tool(llm=query_llm), get_vector_store_tool()]
+def get_retrieval_tool(llm: BaseLanguageModel) -> AgentTool:
+    tools = [
+        get_wikipedia_tool(),
+        get_google_search_tool(llm=llm),
+        get_vector_store_tool()
+    ]
 
     engines = {
         t.name: {
@@ -65,33 +65,35 @@ def get_retrieval_tool() -> BaseTool:
     }
     engines_desc = {t.name: t.description for t in tools}
 
-    def tool_wrapper(query: Optional[str] = None) -> str:
+    async def wrapper(query: Optional[str] = None) -> str:
         if not query:
             return """Could not continue with an empty query"""
 
         try:
-            subqueries = get_subqueries(llm=query_llm, query=query)
+            sub_queries = get_sub_queries(llm=llm, query=query)
 
-            subquery_map = {}
-            for sq in subqueries:
-                subquery_map[sq] = choose_query_engine(llm=query_llm, query=sq, query_engines=engines_desc)
+            # Step 1: Choose engines for each subquery in parallel
+            choosers = [achoose_engine(llm=llm, query=sq, query_engines=engines_desc) for sq in sub_queries]
+            engines_for_sub_queries = await asyncio.gather(*choosers)
+            sub_query_map = dict(zip(sub_queries, engines_for_sub_queries))
 
-            result_map = {}
-            for sq, engine in subquery_map.items():
-                result_map[sq] = engines[engine]['tool'].invoke(sq)
+            # Step 2: Perform sub queries in parallel
+            invokes = [engines[engine]['tool'].invoke(sq) for sq, engine in sub_query_map.items()]
+            results = await asyncio.gather(*invokes)
+            result_map = dict(zip(sub_queries, results))
 
             output = []
             for sq, result in result_map.items():
-                output.append(f'SUB QUERY: {sq}\nSOURCE: {subquery_map[sq]}\nRESULT: {result}')
+                output.append(f'SUB QUERY: {sq}\nSOURCE: {sub_query_map[sq]}\nRESULT: {result}')
 
-            return summarize(llm=query_llm, main_query=query, query_results='\n'.join(output))
+            return summarize(llm=llm, main_query=query, query_results='\n'.join(output))
 
         except Exception as e:
-            return """Failed to preform retrieval, might be caused by an error in one of the sub queries. Try again, 
-            but if you get another failed retrieval it might need some time for the problem to be fixed."""
+            return "Failed to preform retrieval, might be caused by an error in one of the sub queries. Try again," \
+                   "but if you get another failed retrieval it might need some time for the problem to be fixed."
 
-    return Tool(
+    return AgentTool(
+        function=wrapper,
         name="Retrieval tool",
-        func=tool_wrapper,
         description="Useful for information retrieval from the web using natural language querying."
     )
