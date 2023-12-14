@@ -5,7 +5,7 @@ from flask import Flask, Response, request, jsonify, stream_with_context
 from jsonschema import validate, ValidationError
 
 from agent_builder import build_agent
-from openai_utils.config import SERVER_HOST, SERVER_PORT
+from config import SERVER_HOST, SERVER_PORT
 
 
 STREAM_CHUNK_SIZE = 1
