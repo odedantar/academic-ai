@@ -26,6 +26,8 @@ class CustomVectorStore:
 
         if self.is_init:
             self.store = FAISS.load_local(self.path, self.embeddings)
+        else:
+            self.store = None
 
     def save(self):
         self.store.save_local(self.path)
@@ -77,19 +79,30 @@ class CustomVectorStore:
         return documents
 
 
-def init_store(paths: List):
-    store = CustomVectorStore(is_initialized=False)
+def insert_books(paths: List, is_initialized: bool):
+    store = CustomVectorStore(is_initialized=is_initialized)
     for path in paths:
         print(f"Inserting: {path}")
         store.insert_pdf(pdf_path=path)
 
 
 if __name__ == '__main__':
-    init_store([
-        "books/Introduction to Mechanics - Kleppner D. Kolenkow R.J. - 2014.pdf",
-        "books/Electricity and Magnetism - Purcell E.M., Morin D.J. - 2013.pdf",
-        "books/Linear Algebra Done Right - Sheldon Axler - 2015.pdf",
-        "books/Understanding Analysis - Stephen Abbott - 2001.pdf"
-        # "books/Topology - James R. Munkres - 2000.pdf",
-        # "books/Functional Analysis - Yuli Eidelman - 2004.pdf"
-    ])
+    insert_books([
+        # Mathematics:
+
+        # "books/Linear Algebra Done Right - Sheldon Axler - 2015.pdf",
+        # "books/Understanding Analysis - Stephen Abbott - 2001.pdf",
+        # "books/Discrete Mathematics - B. S. Vatsa - 2009.pdf",
+        # "books/Combinatorics 1 - Peter Cameron - Lecture Notes - 2014.pdf",
+        # "books/Complex Function Theory - Donald Sarason - 2007.pdf",
+        # "books/Topology - James R. Munkres - 2014.pdf",
+
+        # Physics:
+
+        # "books/Introduction to Mechanics - Kleppner D. Kolenkow R.J. - 2014.pdf",
+        # "books/Electricity and Magnetism - Purcell E.M., Morin D.J. - 2013.pdf",
+        # "books/Thermodynamics - Enrico Fermi - 2012.pdf",
+        # "books/The Feynman Lectures on Physics - Volume 1.pdf",
+        # "books/The Feynman Lectures on Physics - Volume 2.pdf",
+        # "books/The Feynman Lectures on Physics - Volume 3.pdf"
+    ], is_initialized=True)

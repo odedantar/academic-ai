@@ -1,17 +1,23 @@
 class Keyword:
     QUESTION = 'Question'
+    PROGRESS = 'Progress'
     THOUGHT = 'Thought'
-    ACTION = 'Action'
-    INPUT = 'Action Input'
+    TOOL = 'Tool'
+    INPUT = 'Tool Input'
     OBSERVATION = 'Observation'
+    INSIGHT = 'Insight'
+    REFLECTION = 'Reflection'
     ANSWER = 'Final Answer'
 
 
 keyword_list = [
     Keyword.QUESTION,
+    Keyword.PROGRESS,
     Keyword.THOUGHT,
-    Keyword.ACTION,
+    Keyword.TOOL,
     Keyword.INPUT,
     Keyword.OBSERVATION,
-    Keyword.ANSWER,
+    Keyword.INSIGHT,
+    Keyword.REFLECTION,
+    Keyword.ANSWER
 ]

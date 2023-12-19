@@ -1,18 +1,22 @@
+from typing import Any, Dict
+
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 from langchain.schema.language_model import BaseLanguageModel
 from langchain.schema.runnable import RunnablePassthrough
+from langchain_core.runnables import RunnableSerializable
 
-from framework.agent_tool import AgentTool
+from framework.agent import AgentTool
 from framework.chain_wrappers import code_chain_as_tool
 
 
-latex_template = """Rewrite the following text in LaTeX syntax.
+latex_template = """Rewrite the following text using LaTeX syntax.
 TEXT: 
 {text}
 
 Pay attention - Write only the LaTeX syntax and nothing more.
 If there are parts of the text which are properly written in LaTeX, copy them as is.
+The result should be a compilable code of a full LaTeX document containing the rewritten text.
 
 Begin!
 
@@ -24,12 +28,12 @@ variables = {
 }
 
 
-def get_latex_chain(llm: BaseLanguageModel):
+def get_latex_chain(llm: BaseLanguageModel) -> LLMChain:
     latex_prompt = PromptTemplate.from_template(template=latex_template)
     return LLMChain(llm=llm, prompt=latex_prompt)
 
 
-def get_latex_sequence(llm: BaseLanguageModel, input_chain: LLMChain):
+def get_latex_sequence(llm: BaseLanguageModel, input_chain: LLMChain) -> RunnableSerializable[Any, dict[str, Any]]:
     latex_chain = get_latex_chain(llm=llm)
     return {'text': input_chain} | RunnablePassthrough.assign(output=latex_chain)
 

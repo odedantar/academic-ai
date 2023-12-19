@@ -2,8 +2,8 @@ from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 from langchain.schema.language_model import BaseLanguageModel
 
-from framework.agent_tool import AgentTool
-from math_tools.latex_writer import get_latex_sequence
+from framework.agent import AgentTool
+from math_toolkit.latex_writer import get_latex_sequence
 from framework.chain_wrappers import sequential_chain_as_tool
 
 

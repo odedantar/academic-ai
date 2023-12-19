@@ -1,4 +1,4 @@
-from framework.keywords import keyword_list
+from typing import List
 
 
 class Color:
@@ -18,7 +18,11 @@ def bold(text: str):
     print(Color.BOLD + text + Color.END)
 
 
-def highlight(text: str):
+def warning(text: str):
+    print(Color.BOLD + Color.YELLOW + text + Color.END)
+
+
+def highlight(text: str, keywords: List[str]):
     output = []
     lines = text.split('\n')
 
@@ -27,7 +31,7 @@ def highlight(text: str):
             continue
 
         is_found = False
-        for kw in keyword_list:
+        for kw in keywords:
             word = kw + ':'
             index = line.find(word)
             if index != -1:

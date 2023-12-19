@@ -5,13 +5,14 @@ from langchain.chains import LLMChain
 from langchain.schema.language_model import BaseLanguageModel
 
 
-subquery_template = """You are given a query:
+sub_query_template = """You are given a main query:
 
-QUERY: 
+MAIN QUERY: 
 {query}
 
-Break it down to sub queries which are optimized for vector similarity search. Break it down with as few sub queries 
-as possible. When writing the sub queries follow the format of the JSON scheme below:
+Write sub queries based on the main query which are optimized for vector similarity search. Break it down 
+with as few sub queries as possible while being as comprehensive as possible. When writing the sub queries 
+follow the format of the JSON scheme below:
 
 JSON:
 {json_scheme}
@@ -34,10 +35,10 @@ json_scheme = """{
 
 
 def get_sub_query_chain(llm: BaseLanguageModel) -> LLMChain:
-    subquery_prompt = PromptTemplate.from_template(subquery_template)
-    subquery_chain = LLMChain(llm=llm, prompt=subquery_prompt)
+    sub_query_prompt = PromptTemplate.from_template(sub_query_template)
+    sub_query_chain = LLMChain(llm=llm, prompt=sub_query_prompt)
 
-    return subquery_chain
+    return sub_query_chain
 
 
 def get_sub_queries(llm: BaseLanguageModel, query: str) -> List[str]:

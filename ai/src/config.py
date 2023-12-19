@@ -6,6 +6,9 @@ load_dotenv()
 # OpenAI
 OPENAI_API_KEY = os.environ['OPENAI_API_KEY']
 
+# Google Gemini
+GOOGLE_API_KEY = os.environ['GOOGLE_API_KEY']
+
 # Wolfram Alpha
 WOLFRAM_ALPHA_APPID = os.environ['WOLFRAM_ALPHA_APPID']
 

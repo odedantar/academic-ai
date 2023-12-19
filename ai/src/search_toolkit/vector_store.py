@@ -5,7 +5,7 @@ from typing import List, Dict, Optional
 from jsonschema import validate, ValidationError
 
 from config import VS_API_URL
-from framework.agent_tool import AgentTool
+from framework.agent import AgentTool
 
 
 REQUEST_TIMEOUT = 180  # In seconds

@@ -5,7 +5,7 @@ from agent_builder import build_agent
 
 async def test():
     agent = build_agent()
-    text = """Give me the definition of uniform continuity based on academic books and then type that definition in LaTeX syntax."""
+    text = """Give me the definition of uniform continuity based on academic books, then write in an organized LaTeX syntax that I can copy and compile my self."""
 
     return await agent.invoke(text)
 

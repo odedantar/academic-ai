@@ -4,16 +4,15 @@ from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 from langchain.schema.language_model import BaseLanguageModel
 
-from openai_utils.models import get_openai_llm
-from framework.agent_tool import AgentTool
-from query_tools.sub_query_writer import get_sub_queries
-from query_tools.engine_chooser import achoose_engine
-from query_tools.wikipedia import get_wikipedia_tool
-from query_tools.serper_api import get_google_search_tool
-from query_tools.vector_store import get_vector_store_tool
+from framework.agent import AgentTool
+from search_toolkit.sub_query_writer import get_sub_queries
+from search_toolkit.engine_chooser import achoose_engine
+from search_toolkit.wikipedia import get_wikipedia_tool
+from search_toolkit.serper_api import get_google_search_tool
+from search_toolkit.vector_store import get_vector_store_tool
 
 
-MAX_SUMMARY_LENGTH = 150  # Word count
+# MAX_SUMMARY_LENGTH = 150  # Word count
 
 summary_template = f"""You are given a main query and the results of several sub queries which were 
 derived from the main one:
@@ -25,7 +24,7 @@ RESULTS:
 {{results}}
 
 Summarize the results with the aim of answering the main query. Write only the summary and nothing more. 
-Summarize based only on the results you were given. The summary should be no more than {MAX_SUMMARY_LENGTH} words.
+Summarize based only on the results you were given.
 
 Begin!
 
@@ -50,7 +49,7 @@ def summarize(llm: BaseLanguageModel, main_query: str, query_results: str) -> st
     )['text']
 
 
-def get_retrieval_tool(llm: BaseLanguageModel) -> AgentTool:
+def get_search_tool(llm: BaseLanguageModel) -> AgentTool:
     tools = [
         get_wikipedia_tool(),
         get_google_search_tool(llm=llm),
@@ -94,6 +93,6 @@ def get_retrieval_tool(llm: BaseLanguageModel) -> AgentTool:
 
     return AgentTool(
         function=wrapper,
-        name="Retrieval tool",
-        description="Useful for information retrieval from the web using natural language querying."
+        name="Search",
+        description="Useful for searching online using natural language querying."
     )

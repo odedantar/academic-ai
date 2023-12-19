@@ -9,6 +9,8 @@ WORKDIR /ai
 
 RUN pip --no-cache-dir install openai
 RUN pip --no-cache-dir install langchain
+RUN pip --no-cache-dir install langchain-google-genai
+RUN pip --no-cache-dir install pillow
 RUN pip --no-cache-dir install wikipedia
 RUN pip --no-cache-dir install wolframalpha
 RUN pip --no-cache-dir install python-dotenv

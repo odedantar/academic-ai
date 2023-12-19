@@ -1,7 +1,7 @@
 from langchain.utilities import WikipediaAPIWrapper
 from langchain.tools import WikipediaQueryRun
 
-from framework.agent_tool import AgentTool
+from framework.agent import AgentTool
 
 
 def get_wikipedia_tool() -> AgentTool:

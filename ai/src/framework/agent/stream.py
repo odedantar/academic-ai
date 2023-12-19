@@ -3,6 +3,7 @@ from typing import Union, Optional
 from queue import Queue
 
 from framework import console
+from framework.agent.keywords import keyword_list
 
 
 class AgentStream:
@@ -15,12 +16,12 @@ class AgentStream:
 
     def write(self, input: Union[str, None]):
         if input is not None and self.is_verbose:
-            console.highlight(text=input)
+            console.highlight(text=input, keywords=keyword_list)
 
         self.q.put(input)
 
     async def awrite(self, input: Union[str, None]):
-        raise NotImplementedError("CustomStream.awrite is not yet implemented")
+        raise NotImplementedError("AgentStream.awrite is not yet implemented")
 
     def read(self) -> Union[str, None]:
         if self.q.empty():

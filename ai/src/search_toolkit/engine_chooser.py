@@ -36,12 +36,12 @@ def get_chooser_chain(llm: BaseLanguageModel) -> LLMChain:
     return engine_chain
 
 
-async def achoose_engine(llm: BaseLanguageModel, query: str, query_engines: Dict[str, str]) -> str:
+def choose_engine(llm: BaseLanguageModel, query: str, query_engines: Dict[str, str]) -> str:
     chooser_chain = get_chooser_chain(llm=llm)
     engines = ',\n\t'.join([f'"{name}": "{desc}"' for name, desc in query_engines.items()])
     engines = '{\n\t' + engines + '\n}'
 
-    response = await chooser_chain.ainvoke(
+    response = chooser_chain.invoke(
         input={
             'query': query,
             'engines': engines,
@@ -59,13 +59,13 @@ async def achoose_engine(llm: BaseLanguageModel, query: str, query_engines: Dict
     return scheme['engine']
 
 
-def choose_engine(llm: BaseLanguageModel, query: str, query_engines: Dict[str, str]) -> str:
+async def achoose_engine(llm: BaseLanguageModel, query: str, query_engines: Dict[str, str]) -> str:
     chooser_chain = get_chooser_chain(llm=llm)
     engines = ',\n\t'.join([f'"{name}": "{desc}"' for name, desc in query_engines.items()])
     engines = '{\n\t' + engines + '\n}'
 
-    response = chooser_chain.invoke(
-        inputs={
+    response = await chooser_chain.ainvoke(
+        input={
             'query': query,
             'engines': engines,
             'json_scheme': json_scheme
